@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+python manage.py migrate --noinput
+
+if [ "${RUN_SEEDS:-false}" = "true" ]; then
+  python manage.py seed_users
+  python manage.py seed_animals
+  python manage.py seed_supplies
+fi
+
+exec "$@"

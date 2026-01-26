@@ -1,0 +1,30 @@
+# AWS Configuration
+aws_region  = "us-east-1"
+environment = "dev"
+
+# VPC Configuration
+vpc_cidr = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# Database Configuration
+db_instance_class = "db.t3.micro"
+db_name           = "shelter_db"
+db_username       = "shelter_admin"
+db_password       = "CHANGE_THIS_PASSWORD"
+
+# ECS Configuration
+backend_cpu            = 256
+backend_memory         = 512
+frontend_cpu           = 256
+frontend_memory        = 512
+backend_desired_count  = 1
+frontend_desired_count = 1
+
+# Application Configuration
+django_secret_key     = "CHANGE_THIS_SECRET_KEY"
+allowed_hosts         = "*"
+oauth_client_id       = "shelter-frontend"
+ecs_task_role_name    = "LabRole"
+secure_ssl_redirect   = false
+session_cookie_secure = false
+csrf_cookie_secure    = false
