@@ -40,3 +40,16 @@ CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', default=True)
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF settings (required when behind HTTPS ALB)
+CSRF_TRUSTED_ORIGINS = [o for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o]
+
+# Trust X-Forwarded-* headers from ALB
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+# Static files via WhiteNoise (Django 5 STORAGES setting)
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}

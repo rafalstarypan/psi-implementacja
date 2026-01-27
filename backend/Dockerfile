@@ -43,7 +43,7 @@ RUN chown -R app:app /app
 USER app
 
 # Collect static files
-RUN python manage.py collectstatic --noinput
+RUN DJANGO_ENV=production DJANGO_SETTINGS_MODULE=shelter_project.settings.production python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
@@ -53,3 +53,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "shelter_project.wsgi:application"]
+

@@ -119,6 +119,14 @@ chmod +x infrastructure/scripts/*.sh
    - Backend API: http://localhost:8000/api
    - Admin: http://localhost:8000/admin
 
+### Django Admin
+
+- Superuser (tworzony przez `seed_users`):
+  - Email: `admin@schronisko.pl`
+  - Haslo: `admin123`
+- URL lokalnie: `http://localhost:8000/admin/`
+- URL na AWS: `http://<ALB_Z_TERRAFORM>/admin/`
+  - Uzyj ALB z: `cd infrastructure/terraform && terraform output -raw alb_dns_name`
 ### Konta demonstracyjne
 
 | Email                      | Hasło    | Rola         |
@@ -127,7 +135,17 @@ chmod +x infrastructure/scripts/*.sh
 | wolontariusz@schronisko.pl | haslo123 | Wolontariusz |
 | odwiedzajacy@schronisko.pl | haslo123 | Odwiedzający |
 
-## Wdrożenie na AWS
+## Wdrozenie na AWS
+
+### Cel procedury
+
+Procedura ponizej zapewnia spojnosci miedzy:
+
+- ALB utworzonym przez Terraform,
+- adresem API w frontendzie,
+- oraz seedingiem danych w tej samej infrastrukturze.
+
+Najwazniejsze zalozenie: zawsze korzystamy z ALB zwracanego przez `terraform output -raw alb_dns_name`.
 
 ### Wymagania
 
@@ -135,52 +153,88 @@ chmod +x infrastructure/scripts/*.sh
 - Terraform 1.0+
 - Docker
 
-### Kroki wdrożenia
+### Procedura krok po kroku (DEV)
 
-1. **Skonfiguruj zmienne Terraform**
+1. Skonfiguruj zmienne Terraform
 
-   ```bash
-   cd infrastructure/terraform
-   cp terraform.tfvars.example terraform.tfvars
-   # Edytuj terraform.tfvars i ustaw wymagane wartosci
-   # Learner Lab: ustaw aws_region=us-east-1 i availability_zones na dwa AZ
-   ```
+```bash
+cd infrastructure/terraform
+cp terraform.tfvars.example terraform.tfvars
+# Edytuj terraform.tfvars i ustaw wymagane wartosci
+# Learner Lab: ustaw aws_region=us-east-1 i availability_zones na dwa AZ
+```
 
-2. **Uruchom Terraform (recznie)**
+2. Zbuduj / zaktualizuj infrastrukture
 
-   ```bash
-   cd infrastructure/terraform
-   terraform init
-   terraform plan -out=tfplan
-   terraform apply tfplan
-   ```
+```bash
+cd infrastructure/terraform
+terraform init
+terraform apply -var="environment=dev"
+```
 
-3. **Zbuduj i wypchnij obrazy**
+3. Pobierz i zapisz wlasciwy ALB DNS (punkt odniesienia)
 
-   ```bash
-   cd infrastructure/scripts
-   chmod +x *.sh
-   ./build-and-push.sh dev
-   ```
+```bash
+cd infrastructure/terraform
+terraform output -raw alb_dns_name
+```
 
-4. **Zrestartuj uslugi ECS (nowy deploy)**
+To jest jedyny poprawny adres ALB dla danego stanu Terraform.
 
-   ```bash
-   aws ecs update-service --cluster <cluster> --service <backend-service> --force-new-deployment --region us-east-1
-   aws ecs update-service --cluster <cluster> --service <frontend-service> --force-new-deployment --region us-east-1
-   ```
+4. Zbuduj i wypchnij obrazy z ALB z Terraform output
 
-   Migracje uruchamiaja sie automatycznie przy starcie backendu.
+```bash
+cd infrastructure/scripts
+chmod +x *.sh
+./build-and-push.sh dev
+```
 
-5. **Załaduj dane demonstracyjne (recznie)**
-   ```bash
-   ./seed-data.sh dev
-   ```
+Ten skrypt:
 
-   Windows (PowerShell):
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File infrastructure/scripts/seed-data.ps1 dev
-   ```
+- pobiera ALB DNS z `terraform output -raw alb_dns_name`,
+- ustawia go jako `VITE_API_URL=http://<ALB>/api` podczas buildu frontendu,
+- a nastepnie pushuje obrazy do ECR.
+
+5. Wymus nowy deploy uslug ECS
+
+```bash
+aws ecs update-service --cluster shelter-dev-cluster --service shelter-dev-backend-service --force-new-deployment --region us-east-1
+aws ecs update-service --cluster shelter-dev-cluster --service shelter-dev-frontend-service --force-new-deployment --region us-east-1
+```
+
+Migracje uruchamiaja sie automatycznie przy starcie backendu.
+
+6. Uruchom seedy na AWS (nie lokalnie)
+
+Linux/Mac:
+
+```bash
+cd infrastructure/scripts
+./seed-data.sh dev
+```
+
+Windows (PowerShell):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File infrastructure/scripts/seed-data.ps1 dev
+```
+
+7. Testuj wylacznie na ALB z kroku 3
+
+Sprawdz w przegladarce:
+
+- Admin: `http://<ALB_Z_TERRAFORM>/admin/`
+- Statyki admina: `http://<ALB_Z_TERRAFORM>/static/admin/css/base.css`
+- Token: `http://<ALB_Z_TERRAFORM>/o/token/`
+
+### Dlaczego ta procedura rozwiazuje problemy
+
+- `/admin` i jego statyki dzialaja poprawnie, bo ALB routuje `/admin/*` i `/static/*` do backendu.
+- Logowanie dziala, bo:
+  - frontend jest budowany z poprawnym ALB DNS,
+  - a seedy odpalane sa na tej samej infrastrukturze (ECS + RDS) co ALB z Terraform output.
+
+Najczestsza przyczyna bledow: korzystanie z innego ALB niz ten wynikajacy z biezacego stanu Terraform.
 
 ## Testowanie
 
@@ -240,3 +294,9 @@ backend/apps/
 - `POST /api/animals/{id}/vaccinations/` - Dodaj szczepienie
 - `GET /api/animals/{id}/procedures/` - Lista zabiegów
 - `POST /api/animals/{id}/procedures/` - Dodaj zabieg
+
+## Przydatne komendu do deploymentu
+
+- aws sts get-caller-identity
+- docker system prune -a --volumes -f
+

@@ -60,6 +60,7 @@ resource "aws_ecs_task_definition" "backend" {
 
       environment = [
         { name = "DJANGO_SETTINGS_MODULE", value = "shelter_project.settings.production" },
+        { name = "DJANGO_ENV", value = "production" },
         { name = "DB_HOST", value = aws_db_instance.main.address },
         { name = "DB_PORT", value = "5432" },
         { name = "DB_NAME", value = var.db_name },
@@ -71,6 +72,8 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "SECURE_SSL_REDIRECT", value = tostring(var.secure_ssl_redirect) },
         { name = "SESSION_COOKIE_SECURE", value = tostring(var.session_cookie_secure) },
         { name = "CSRF_COOKIE_SECURE", value = tostring(var.csrf_cookie_secure) },
+                { name = "CSRF_TRUSTED_ORIGINS", value = "http://${aws_lb.main.dns_name}" },
+        { name = "RUN_SEEDS", value = var.environment == "dev" ? "true" : "false" },
       ]
 
       logConfiguration = {
