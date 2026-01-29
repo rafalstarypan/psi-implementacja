@@ -1,5 +1,11 @@
+import uuid
 from django.db import models
+from django.core.validators import RegexValidator
 
+postal_code_validator = RegexValidator(
+    regex=r'^\d{2}-\d{3}$',
+    message='Postal code must be in format: XX-XXX'
+)
 
 class Address(models.Model):
     """Person or institutions address."""
@@ -7,6 +13,8 @@ class Address(models.Model):
         verbose_name='Address Identifier',
         max_length=50,
         unique=True,
+        default=uuid.uuid4,  
+        editable=False,
     )
     city = models.CharField(
         verbose_name='City',
@@ -15,6 +23,7 @@ class Address(models.Model):
     postal_code = models.CharField(
         verbose_name='Postal Code',
         max_length=10,
+        validators=[postal_code_validator],
     )
     street = models.CharField(
         verbose_name='Street',
@@ -48,6 +57,8 @@ class Person(models.Model):
         verbose_name='Person Identifier',
         max_length=50,
         unique=True,
+        default=uuid.uuid4,  
+        editable=False,
     )
     phone_number = models.CharField(
         verbose_name='Phone Number',
@@ -63,6 +74,7 @@ class Person(models.Model):
         verbose_name='Address',
         on_delete=models.SET_NULL,
         related_name='persons',
+        null=True,
     )   
     firstname = models.CharField(
         verbose_name='First Name',
@@ -84,12 +96,14 @@ class Person(models.Model):
         return f'{self.person_id} {self.firstname} {self.lastname}'
     
 
-    class Institution(models.Model):
-        """Institution which interacts with the shelter."""
+class Institution(models.Model):
+    """Institution which interacts with the shelter."""
     institution_id = models.CharField(
         verbose_name='Institution Identifier',
         max_length=50,
         unique=True,
+        default=uuid.uuid4,  
+        editable=False,
     )
     phone_number = models.CharField(
         verbose_name='Phone Number',
@@ -105,6 +119,7 @@ class Person(models.Model):
         verbose_name='Address',
         on_delete=models.SET_NULL,
         related_name='institutions',
+        null=True,
     )
     name = models.CharField(
         verbose_name='Name',
