@@ -4,6 +4,7 @@ Models for animals app - Animal management and medical records.
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
+import uuid
 
 
 class AnimalSpecies(models.TextChoices):
@@ -28,6 +29,16 @@ class AnimalStatus(models.TextChoices):
     MEDICAL_TREATMENT = 'MEDICAL_TREATMENT', 'Leczenie'
     ADOPTED = 'ADOPTED', 'Adoptowane'
     DECEASED = 'DECEASED', 'Zmarłe'
+
+
+class IntakeType(models.TextChoices):
+    """Type of animal intake."""
+    STRAY = 'STRAY', 'Stray'
+    SURRENDER = 'SURRENDER', 'Surrender'
+    CONFISCATION = 'CONFISCATION', 'Confiscation'
+    TRANSFER = 'TRANSFER', 'Transfer'
+    BORN_IN_SHELTER = 'BORN_IN_SHELTER', 'Born in Shelter'
+
 
 
 class Animal(models.Model):
@@ -276,3 +287,74 @@ class MedicalProcedure(models.Model):
 
     def __str__(self):
         return f'{self.description[:50]} - {self.animal.name}'
+    
+
+class Intake(models.Model):
+    """Animal intake record."""
+    intake_id = models.CharField(
+        verbose_name='Intake Identifier',
+        max_length=50,
+        unique=True,
+        default=uuid.uuid4,  
+        editable=False,
+    )
+    animal = models.ForeignKey(
+        Animal, 
+        on_delete=models.CASCADE,
+        related_name='intakes',
+        verbose_name='Animal',  
+    )
+    intake_date = models.DateField(
+        verbose_name='Intake Date',
+    )
+    animal_condition = models.CharField(
+        verbose_name='Animal Condition',
+        max_length=255,
+    )
+    location = models.CharField(
+        verbose_name='Location',
+        max_length=255,
+    )
+    notes = models.CharField(
+        verbose_name='Notes',
+        max_length=255,
+    )
+    intake_type = models.CharField(
+        verbose_name='Intake Type',
+        max_length=20,
+        choices=IntakeType.choices,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Intake'
+        verbose_name_plural = 'Intakes'
+        ordering = ['-intake_date', '-intake_type']
+
+    def __str__(self):
+        return f'{self.animal.name} - {self.intake_date} - {self.get_intake_type_display()}'
+    
+
+
+class BehavioralTag(models.Model):
+    """Behavioral tag for animals."""
+    behavioral_tag_name = models.CharField(
+        verbose_name='Behavioral Tag Name',
+        max_length=50,
+        unique=True,  
+        editable=False,
+    )
+    description = models.CharField(
+        verbose_name='Description',
+        max_length=255,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Behavioral Tag'
+        verbose_name_plural = 'Behavioral Tags'
+        ordering = ['-behavioral_tag_name']
+    def __str__(self):
+        return self.behavioral_tag_name

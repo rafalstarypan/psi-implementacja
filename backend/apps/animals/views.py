@@ -8,10 +8,15 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.permissions import IsEmployee
 from apps.accounts.models import User, Role
-from .models import Animal, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Vaccination, MedicalProcedure
 from .serializers import (
     AnimalListSerializer,
     AnimalDetailSerializer,
+    BehavioralTagListSerializer,
+    IntakeCreateSerializer,
+    IntakeDetailSerializer,
+    IntakeListSerializer,
+    IntakeListSerializer,
     MedicationSerializer,
     MedicationCreateSerializer,
     VaccinationSerializer,
@@ -19,6 +24,7 @@ from .serializers import (
     MedicalProcedureSerializer,
     MedicalProcedureCreateSerializer,
     VeterinarianSerializer,
+    BehavioralTagDetailSerializer,
 )
 
 
@@ -137,3 +143,27 @@ class VeterinarianListView(APIView):
         veterinarians = User.objects.filter(role=Role.EMPLOYEE, is_active=True)
         serializer = VeterinarianSerializer(veterinarians, many=True)
         return Response(serializer.data)
+
+
+class IntakeViewSet(viewsets.ModelViewSet):
+
+    queryset = Intake.objects.all()
+    lookup_field = 'intake_id'
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return IntakeDetailSerializer
+        if self.action in ['create', 'update', 'partial_update']:
+            return IntakeCreateSerializer
+        return IntakeListSerializer
+
+
+class BehavioralTagViewSet(viewsets.ReadOnlyModelViewSet):
+
+    queryset = BehavioralTag.objects.all()
+    lookup_field = 'behavioral_tag_name'
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return BehavioralTagDetailSerializer
+        return BehavioralTagListSerializer

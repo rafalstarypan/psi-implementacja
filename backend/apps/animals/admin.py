@@ -2,7 +2,7 @@
 Admin configuration for animals app.
 """
 from django.contrib import admin
-from .models import Animal, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Vaccination, MedicalProcedure
 
 
 class MedicationInline(admin.TabularInline):
@@ -73,3 +73,17 @@ class MedicalProcedureAdmin(admin.ModelAdmin):
     def description_short(self, obj):
         return obj.description[:50] + '...' if len(obj.description) > 50 else obj.description
     description_short.short_description = 'Opis'
+
+@admin.register(Intake)
+class IntakeAdmin(admin.ModelAdmin):
+    list_display = ['animal', 'intake_type', 'intake_date']
+    list_filter = ['intake_type', 'intake_date']
+    search_fields = ['animal__name', 'notes']
+    readonly_fields = ['created_at']
+
+@admin.register(BehavioralTag)
+class BehavioralTagAdmin(admin.ModelAdmin):
+    list_display = ['behavioral_tag_name']
+    list_filter = ['behavioral_tag_name']
+    search_fields = ['behavioral_tag_name']
+    readonly_fields = ['created_at']

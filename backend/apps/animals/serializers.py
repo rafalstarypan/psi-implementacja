@@ -2,7 +2,7 @@
 Serializers for animals app.
 """
 from rest_framework import serializers
-from .models import Animal, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Vaccination, MedicalProcedure
 from apps.accounts.serializers import UserMinimalSerializer
 
 
@@ -206,3 +206,68 @@ class VeterinarianSerializer(serializers.ModelSerializer):
         from apps.accounts.models import User
         model = User
         fields = ['id', 'full_name', 'email']
+
+
+class IntakeListSerializer(serializers.ModelSerializer):
+    animal = AnimalListSerializer(read_only=True)
+
+
+    class Meta:
+        model = Intake
+        fields = [
+            'intake_date', 
+            'intake_type', 
+            'animal_condition', 
+            'location',
+            'animal',
+        ]
+
+class IntakeDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Intake
+        fields = [
+            'intake_id',
+            'intake_date', 
+            'intake_type', 
+            'animal_condition', 
+            'location', 
+            'notes'
+        ]
+
+class IntakeCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Intake
+        fields = [
+            'intake_id',
+            'intake_date', 
+            'intake_type', 
+            'animal_condition', 
+            'location', 
+            'notes'
+        ]
+
+    def create(self, validated_data):
+        animal = self.context['animal']
+        validated_data['animal'] = animal
+        intake = Intake.objects.create(**validated_data)
+        return intake
+
+
+class BehavioralTagListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BehavioralTag
+        fields = [
+            'behavioral_tag_name', 
+        ]
+
+class BehavioralTagDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BehavioralTag
+        fields = [
+            'behavioral_tag_name', 
+            'description',
+        ]
