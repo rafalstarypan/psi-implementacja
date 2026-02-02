@@ -8,8 +8,9 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.permissions import IsEmployee
 from apps.accounts.models import User, Role
-from .models import Animal, BehavioralTag, Intake, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Photo, Vaccination, MedicalProcedure
 from .serializers import (
+    AnimalCreateSerializer,
     AnimalListSerializer,
     AnimalDetailSerializer,
     BehavioralTagListSerializer,
@@ -25,10 +26,13 @@ from .serializers import (
     MedicalProcedureCreateSerializer,
     VeterinarianSerializer,
     BehavioralTagDetailSerializer,
+    PhotoListSerializer,
+    PhotoDetailSerializer,
+    PhotoCreateSerializer
 )
 
 
-class AnimalViewSet(viewsets.ReadOnlyModelViewSet):
+class AnimalViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing animals.
 
@@ -46,6 +50,8 @@ class AnimalViewSet(viewsets.ReadOnlyModelViewSet):
         return Animal.objects.all()
 
     def get_serializer_class(self):
+        if self.action == 'create':
+            return AnimalCreateSerializer
         if self.action == 'retrieve':
             return AnimalDetailSerializer
         return AnimalListSerializer
@@ -167,3 +173,16 @@ class BehavioralTagViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'retrieve':
             return BehavioralTagDetailSerializer
         return BehavioralTagListSerializer
+    
+
+class PhotoViewSet(viewsets.ModelViewSet):
+
+    queryset = Photo.objects.all()
+    lookup_field = 'photo_id'
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PhotoDetailSerializer
+        if self.action in ['create', 'update', 'partial_update']:
+            return PhotoCreateSerializer
+        return PhotoListSerializer

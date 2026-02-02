@@ -2,7 +2,7 @@
 Admin configuration for animals app.
 """
 from django.contrib import admin
-from .models import Animal, BehavioralTag, Intake, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Photo, Vaccination, MedicalProcedure
 
 
 class MedicationInline(admin.TabularInline):
@@ -25,15 +25,15 @@ class MedicalProcedureInline(admin.TabularInline):
 
 @admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
-    list_display = ['animal_id', 'name', 'species', 'breed', 'sex', 'status', 'intake_date']
+    list_display = ['name', 'species', 'breed', 'sex', 'status', 'intake_date']
     list_filter = ['species', 'sex', 'status']
-    search_fields = ['name', 'animal_id', 'breed', 'transponder_number']
+    search_fields = ['name', 'breed', 'transponder_number']
     readonly_fields = ['created_at', 'updated_at']
     inlines = [MedicationInline, VaccinationInline, MedicalProcedureInline]
 
     fieldsets = (
         ('Podstawowe informacje', {
-            'fields': ('animal_id', 'name', 'species', 'breed', 'birth_date', 'sex')
+            'fields': ( 'name', 'species', 'breed', 'birth_date', 'sex')
         }),
         ('Cechy fizyczne', {
             'fields': ('coat_color', 'weight', 'identifying_marks')
@@ -87,3 +87,11 @@ class BehavioralTagAdmin(admin.ModelAdmin):
     list_filter = ['behavioral_tag_name']
     search_fields = ['behavioral_tag_name']
     readonly_fields = ['created_at']
+
+
+@admin.register(Photo)
+class PhotoAdmin(admin.ModelAdmin):
+    list_display = ['filename', 'is_identification_photo', 'url', 'upload_date']
+    list_filter = ['upload_date', 'is_identification_photo']
+    search_fields = ['filename', 'url']
+    readonly_fields = ['upload_date', 'created_at']

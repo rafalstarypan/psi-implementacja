@@ -1,10 +1,12 @@
 """
 Models for animals app - Animal management and medical records.
 """
+from datetime import date
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
 import uuid
+from django.core.exceptions import ValidationError
 
 
 class AnimalSpecies(models.TextChoices):
@@ -41,12 +43,36 @@ class IntakeType(models.TextChoices):
 
 
 
+class BehavioralTag(models.Model):
+    """Behavioral tag for animals."""
+    behavioral_tag_name = models.CharField(
+        verbose_name='Behavioral Tag Name',
+        max_length=50,
+        unique=True,  
+        editable=False,
+    )
+    description = models.CharField(
+        verbose_name='Description',
+        max_length=255,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Behavioral Tag'
+        verbose_name_plural = 'Behavioral Tags'
+        ordering = ['-behavioral_tag_name']
+    def __str__(self):
+        return self.behavioral_tag_name
+
 class Animal(models.Model):
     """Animal in the shelter."""
     animal_id = models.CharField(
         verbose_name='Identyfikator',
         max_length=50,
         unique=True,
+        default=uuid.uuid4,  
+        editable=False,
     )
     species = models.CharField(
         verbose_name='Gatunek',
@@ -115,6 +141,27 @@ class Animal(models.Model):
         null=True,
         blank=True,
     )
+
+    last_measured = models.DateField(
+        verbose_name='Lasr measured date',
+        null=True,
+        blank=True,
+    )
+
+    behavioral_tags = models.ManyToManyField(
+        BehavioralTag,
+        related_name="animals",
+        blank=True,
+    )
+
+    parents = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='offspring',
+        blank=True,
+    )
+
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -125,6 +172,11 @@ class Animal(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.get_species_display()})'
+    
+    def clean(self):
+        super().clean()
+        if self.pk and self.parents.count() > 2:
+            raise ValidationError("An animal can have at most 2 parents.")
 
     @property
     def age_display(self):
@@ -306,6 +358,7 @@ class Intake(models.Model):
     )
     intake_date = models.DateField(
         verbose_name='Intake Date',
+        default=date.today
     )
     animal_condition = models.CharField(
         verbose_name='Animal Condition',
@@ -324,6 +377,18 @@ class Intake(models.Model):
         max_length=20,
         choices=IntakeType.choices,
     )
+    source_type = models.CharField(
+        verbose_name='Source Type',
+        max_length=20,
+        choices = (("person", "person"), ("institution", "institution")),
+        null = True,
+        blank = True,
+    )
+    source_id = models.UUIDField(
+        verbose_name='Source Identifier', 
+        null = True,
+        blank = True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -337,24 +402,45 @@ class Intake(models.Model):
     
 
 
-class BehavioralTag(models.Model):
-    """Behavioral tag for animals."""
-    behavioral_tag_name = models.CharField(
-        verbose_name='Behavioral Tag Name',
+class Photo(models.Model):
+    """Photos for animals."""
+    photo_id = models.CharField(
+        verbose_name='Photo Identifier',
         max_length=50,
         unique=True,  
         editable=False,
+        default=uuid.uuid4,
     )
-    description = models.CharField(
-        verbose_name='Description',
+
+    animal = models.ForeignKey(
+        Animal,
+        on_delete=models.CASCADE,
+        related_name='photos',
+        verbose_name='Animal',
+    )
+
+    url = models.CharField(
+        verbose_name='URL',
         max_length=255,
+    )
+    filename = models.CharField(
+        verbose_name='Filename',
+        max_length=100,
+    )
+    upload_date = models.DateField(
+        verbose_name='Upload Date',
+        auto_now_add=True,
+    )
+    is_identification_photo = models.BooleanField(
+        verbose_name='Is Identification Photo', 
+        default=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'Behavioral Tag'
-        verbose_name_plural = 'Behavioral Tags'
-        ordering = ['-behavioral_tag_name']
+        verbose_name = 'Photo'
+        verbose_name_plural = 'Photos'
+        ordering = ['-created_at']
     def __str__(self):
-        return self.behavioral_tag_name
+        return self.photo_id
