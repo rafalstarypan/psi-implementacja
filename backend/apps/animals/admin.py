@@ -25,24 +25,24 @@ class MedicalProcedureInline(admin.TabularInline):
 
 @admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
-    list_display = ['name', 'species', 'breed', 'sex', 'status', 'intake_date']
+    list_display = ['name', 'species', 'breed', 'sex', 'status']
     list_filter = ['species', 'sex', 'status']
     search_fields = ['name', 'breed', 'transponder_number']
     readonly_fields = ['created_at', 'updated_at']
     inlines = [MedicationInline, VaccinationInline, MedicalProcedureInline]
 
     fieldsets = (
-        ('Podstawowe informacje', {
+        ('Basic information', {
             'fields': ( 'name', 'species', 'breed', 'birth_date', 'sex')
         }),
-        ('Cechy fizyczne', {
-            'fields': ('coat_color', 'weight', 'identifying_marks')
+        ('Physical characteristics', {
+            'fields': ('coat_color', 'weight', 'identifying_marks', 'last_measured')
         }),
-        ('Status i identyfikacja', {
+        ('Status and identification', {
             'fields': ('status', 'transponder_number', 'microchipping_date')
         }),
-        ('Dodatkowe informacje', {
-            'fields': ('notes', 'intake_date', 'created_at', 'updated_at')
+        ('Additional information', {
+            'fields': ('notes', 'created_at', 'updated_at')
         }),
     )
 

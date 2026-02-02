@@ -11,26 +11,26 @@ from django.core.exceptions import ValidationError
 
 class AnimalSpecies(models.TextChoices):
     """Animal species."""
-    DOG = 'DOG', 'Pies'
-    CAT = 'CAT', 'Kot'
-    OTHER = 'OTHER', 'Inny'
+    DOG = 'DOG', 'Dog'
+    CAT = 'CAT', 'Cat'
+    OTHER = 'OTHER', 'Other'
 
 
 class AnimalSex(models.TextChoices):
     """Animal sex."""
-    MALE = 'MALE', 'Samiec'
-    FEMALE = 'FEMALE', 'Samica'
-    UNKNOWN = 'UNKNOWN', 'Nieznana'
+    MALE = 'MALE', 'Male'
+    FEMALE = 'FEMALE', 'Female'
+    UNKNOWN = 'UNKNOWN', 'Unknown'
 
 
 class AnimalStatus(models.TextChoices):
     """Animal status in the shelter."""
-    NEW_INTAKE = 'NEW_INTAKE', 'Nowo przyjęte'
-    IN_SHELTER = 'IN_SHELTER', 'W schronisku'
-    QUARANTINE = 'QUARANTINE', 'Kwarantanna'
-    MEDICAL_TREATMENT = 'MEDICAL_TREATMENT', 'Leczenie'
-    ADOPTED = 'ADOPTED', 'Adoptowane'
-    DECEASED = 'DECEASED', 'Zmarłe'
+    NEW_INTAKE = 'NEW_INTAKE', 'Newly Intake'
+    IN_SHELTER = 'IN_SHELTER', 'In Shelter'
+    QUARANTINE = 'QUARANTINE', 'Quarantine'
+    MEDICAL_TREATMENT = 'MEDICAL_TREATMENT', 'Medical Treatment'
+    ADOPTED = 'ADOPTED', 'Adopted'
+    DECEASED = 'DECEASED', 'Deceased'
 
 
 class IntakeType(models.TextChoices):
@@ -68,55 +68,55 @@ class BehavioralTag(models.Model):
 class Animal(models.Model):
     """Animal in the shelter."""
     animal_id = models.CharField(
-        verbose_name='Identyfikator',
+        verbose_name='Identifier',
         max_length=50,
         unique=True,
         default=uuid.uuid4,  
         editable=False,
     )
     species = models.CharField(
-        verbose_name='Gatunek',
+        verbose_name='Species',
         max_length=10,
         choices=AnimalSpecies.choices,
     )
     breed = models.CharField(
-        verbose_name='Rasa',
+        verbose_name='Breed',
         max_length=100,
         blank=True,
     )
     name = models.CharField(
-        verbose_name='Imię',
+        verbose_name='Name',
         max_length=100,
     )
     birth_date = models.DateField(
-        verbose_name='Data urodzenia',
+        verbose_name='Birth Date',
         null=True,
         blank=True,
     )
     sex = models.CharField(
-        verbose_name='Płeć',
+        verbose_name='Sex',
         max_length=10,
         choices=AnimalSex.choices,
         default=AnimalSex.UNKNOWN,
     )
     coat_color = models.CharField(
-        verbose_name='Kolor sierści',
+        verbose_name='Coat Color',
         max_length=100,
         blank=True,
     )
     weight = models.DecimalField(
-        verbose_name='Waga (kg)',
+        verbose_name='Weight (kg)',
         max_digits=5,
         decimal_places=2,
         null=True,
         blank=True,
     )
     identifying_marks = models.TextField(
-        verbose_name='Znaki szczególne',
+        verbose_name='Identifying Marks',
         blank=True,
     )
     transponder_number = models.CharField(
-        verbose_name='Numer transpondera (chip)',
+        verbose_name='Transponder Number(microchip)',
         max_length=50,
         blank=True,
         null=True,
@@ -129,21 +129,21 @@ class Animal(models.Model):
         default=AnimalStatus.NEW_INTAKE,
     )
     notes = models.TextField(
-        verbose_name='Uwagi',
+        verbose_name='Notes',
         blank=True,
     )
     intake_date = models.DateField(
-        verbose_name='Data przyjęcia',
+        verbose_name='Intake Date',
         auto_now_add=True,
     )
     microchipping_date = models.DateField(
-        verbose_name='Data chipowania',
+        verbose_name='Microchipping Date',
         null=True,
         blank=True,
     )
 
     last_measured = models.DateField(
-        verbose_name='Lasr measured date',
+        verbose_name='Last measured date',
         null=True,
         blank=True,
     )
@@ -166,8 +166,8 @@ class Animal(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'Zwierzę'
-        verbose_name_plural = 'Zwierzęta'
+        verbose_name = 'Animal'
+        verbose_name_plural = 'Animals'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -201,33 +201,33 @@ class Medication(models.Model):
         Animal,
         on_delete=models.CASCADE,
         related_name='medications',
-        verbose_name='Zwierzę',
+        verbose_name='Animal',
     )
     medication_name = models.CharField(
-        verbose_name='Nazwa leku',
+        verbose_name='Medication Name',
         max_length=200,
     )
     dosage = models.CharField(
-        verbose_name='Dawkowanie',
+        verbose_name='Dosage',
         max_length=100,
     )
     frequency = models.CharField(
-        verbose_name='Częstotliwość podawania',
+        verbose_name='Frequency of administration',
         max_length=100,
     )
     start_date = models.DateField(
-        verbose_name='Data rozpoczęcia',
+        verbose_name='Start Date',
     )
     end_date = models.DateField(
-        verbose_name='Data zakończenia',
+        verbose_name='End Date',
         null=True,
         blank=True,
     )
     reason = models.TextField(
-        verbose_name='Powód przepisania',
+        verbose_name='Reason for prescription',
     )
     notes = models.TextField(
-        verbose_name='Notatki dodatkowe',
+        verbose_name='Notes',
         blank=True,
     )
     performed_by = models.ForeignKey(
@@ -235,13 +235,13 @@ class Medication(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name='prescribed_medications',
-        verbose_name='Przepisał',
+        verbose_name='Prescribed by',
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Przepisany lek'
-        verbose_name_plural = 'Przepisane leki'
+        verbose_name = 'Prescribed Medication'
+        verbose_name_plural = 'Prescribed Medications'
         ordering = ['-start_date']
 
     def __str__(self):
@@ -254,28 +254,28 @@ class Vaccination(models.Model):
         Animal,
         on_delete=models.CASCADE,
         related_name='vaccinations',
-        verbose_name='Zwierzę',
+        verbose_name='Animal',
     )
     vaccine_name = models.CharField(
-        verbose_name='Nazwa szczepionki',
+        verbose_name='Vaccine Name',
         max_length=200,
     )
     vaccine_for = models.CharField(
-        verbose_name='Przeciwko (chorobie)',
+        verbose_name='Vaccine For',
         max_length=200,
     )
     vaccine_batch_number = models.CharField(
-        verbose_name='Numer partii',
+        verbose_name='Batch Number',
         max_length=100,
     )
     vaccination_date = models.DateField(
-        verbose_name='Data szczepienia',
+        verbose_name='Vaccination Date',
     )
     expiration_date = models.DateField(
-        verbose_name='Data wygaśnięcia',
+        verbose_name='Expiration Date',
     )
     next_due_date = models.DateField(
-        verbose_name='Data następnego szczepienia',
+        verbose_name='Next Due Date',
         null=True,
         blank=True,
     )
@@ -284,13 +284,13 @@ class Vaccination(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name='administered_vaccinations',
-        verbose_name='Wykonał',
+        verbose_name='Performed by',
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Szczepienie'
-        verbose_name_plural = 'Szczepienia'
+        verbose_name = 'Vaccination'
+        verbose_name_plural = 'Vaccinations'
         ordering = ['-vaccination_date']
 
     def __str__(self):
@@ -303,24 +303,24 @@ class MedicalProcedure(models.Model):
         Animal,
         on_delete=models.CASCADE,
         related_name='procedures',
-        verbose_name='Zwierzę',
+        verbose_name='Animal',
     )
     procedure_date = models.DateField(
-        verbose_name='Data zabiegu',
+        verbose_name='Procedure Date',
     )
     description = models.TextField(
-        verbose_name='Opis zabiegu',
+        verbose_name='Description',
     )
     result = models.TextField(
-        verbose_name='Wynik/Przebieg',
+        verbose_name='Result/Progress',
     )
     cost = models.DecimalField(
-        verbose_name='Koszt (PLN)',
+        verbose_name='Cost',
         max_digits=10,
         decimal_places=2,
     )
     notes = models.TextField(
-        verbose_name='Notatki dodatkowe',
+        verbose_name='Notes',
         blank=True,
     )
     performed_by = models.ForeignKey(
@@ -328,13 +328,13 @@ class MedicalProcedure(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name='performed_procedures',
-        verbose_name='Wykonał',
+        verbose_name='Performed by',
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Zabieg medyczny'
-        verbose_name_plural = 'Zabiegi medyczne'
+        verbose_name = 'Medical Procedure'
+        verbose_name_plural = 'Medical Procedures'
         ordering = ['-procedure_date']
 
     def __str__(self):
