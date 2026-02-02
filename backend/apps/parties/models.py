@@ -68,6 +68,7 @@ class Person(models.Model):
         verbose_name='Email Address',
         max_length=50,
         blank=True,
+        unique=True,
     )
     address = models.ForeignKey(
         Address,        
@@ -113,6 +114,7 @@ class Institution(models.Model):
         verbose_name='Email Address',
         max_length=50,
         blank=True,
+        unique=True,
     )
     address = models.ForeignKey(
         Address,        

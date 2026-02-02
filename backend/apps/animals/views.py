@@ -154,7 +154,6 @@ class VeterinarianListView(APIView):
 class IntakeViewSet(viewsets.ModelViewSet):
 
     queryset = Intake.objects.all()
-    lookup_field = 'intake_id'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -162,17 +161,32 @@ class IntakeViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return IntakeCreateSerializer
         return IntakeListSerializer
+    
+    def get_queryset(self):
+        animal_pk = self.kwargs.get('animal_pk')
+        return self.queryset.filter(animal_id=animal_pk)
+    
+    def perform_create(self, serializer):
+        animal_pk = self.kwargs.get('animal_pk')
+        serializer.save(animal_id=animal_pk)    
 
 
 class BehavioralTagViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = BehavioralTag.objects.all()
-    lookup_field = 'behavioral_tag_name'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return BehavioralTagDetailSerializer
         return BehavioralTagListSerializer
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        animal_pk = self.kwargs.get('animal_pk')
+        if animal_pk:
+            qs = qs.filter(animals__id=animal_pk)
+        return qs
+
     
 
 class PhotoViewSet(viewsets.ModelViewSet):
@@ -186,3 +200,11 @@ class PhotoViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return PhotoCreateSerializer
         return PhotoListSerializer
+
+    def get_queryset(self):
+        animal_pk = self.kwargs.get('animal_pk')
+        return self.queryset.filter(animal_id=animal_pk)
+    
+    def perform_create(self, serializer):
+        animal_pk = self.kwargs.get('animal_pk')
+        serializer.save(animal_id=animal_pk)  

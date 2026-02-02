@@ -97,7 +97,7 @@ class IntakeCreateSerializer(serializers.ModelSerializer):
                     validated_data["source_type"] = None
             else:
                 validated_data["source_id"] = SourceService.create(
-                    source_type, source_data, context=self.context
+                    source_type, source_data["data"], context=self.context
                 )
         return Intake.objects.create(**validated_data)
 

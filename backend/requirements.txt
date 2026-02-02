@@ -28,3 +28,5 @@ flake8>=6.1,<7.0
 black>=23.12,<24.0
 isort>=5.13,<6.0
 
+# Nested routing
+drf-nested-routers>=0.93,<1.0

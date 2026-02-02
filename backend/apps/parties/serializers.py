@@ -35,6 +35,7 @@ class PersonListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Person
         fields = [
+            'person_id',
             'email_address',
             'firstname',
             'lastname'
@@ -63,12 +64,14 @@ class PersonCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Person
         fields = [
+            'person_id',
             'phone_number',
             'email_address',
             'firstname',
             'lastname',
             'address'
         ]
+        read_only_fields = ['person_id']
 
     def create(self, validated_data):
 
@@ -86,6 +89,7 @@ class InstitutionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Institution
         fields = [
+            'institution_id',
             'email_address',
             'name'
         ]
@@ -117,6 +121,7 @@ class InstitutionCreateSerializer(serializers.ModelSerializer):
             'name',
             'address'
         ]
+        read_only_fields = ['institution_id']
 
     def create(self, validated_data):
 
