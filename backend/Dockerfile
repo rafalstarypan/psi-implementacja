@@ -34,8 +34,8 @@ RUN pip install --no-cache /wheels/*
 # Copy application
 COPY . .
 
-# Entrypoint for migrations and seeding
-RUN chmod +x /app/entrypoint.sh
+# Entrypoint for migrations and seeding (fix Windows line endings)
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Change ownership
 RUN chown -R app:app /app
@@ -51,6 +51,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/api/health/ || exit 1
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "shelter_project.wsgi:application"]
 

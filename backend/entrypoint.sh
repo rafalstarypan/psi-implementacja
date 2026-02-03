@@ -11,4 +11,3 @@ if [ "${RUN_SEEDS:-false}" = "true" ]; then
 fi
 
 exec "$@"
-
