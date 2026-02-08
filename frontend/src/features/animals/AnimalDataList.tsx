@@ -61,7 +61,7 @@ const adoptionStatusMap: Record<string, { label: string; variant: 'default' | 'o
   DECEASED: { label: 'Unavailable', variant: 'outline' },
 }
 
-export function AnimalList() {
+export function AnimalDetailList() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [speciesFilter, setSpeciesFilter] = useState<string>('all')
@@ -175,7 +175,7 @@ export function AnimalList() {
                       <TableRow
                         key={animal.id}
                         className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/panel/animals-medical/${animal.id}`)}
+                        onClick={() => navigate(`/panel/animals-data/${animal.id}`)}
                       >
                         <TableCell className="font-mono text-sm">{animal.animal_id}</TableCell>
                         <TableCell className="text-blue-600">{animal.species_display}</TableCell>

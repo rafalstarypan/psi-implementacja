@@ -7,6 +7,8 @@ import { SupplyList } from '@/features/supplies/SupplyList'
 import { SupplyItemDetail } from '@/features/supplies/SupplyItemDetail'
 import { AnimalList } from '@/features/animals/AnimalList'
 import { AnimalMedicalRecord } from '@/features/animals/AnimalMedicalRecord'
+import { AnimalDetailList } from './features/animals/AnimalDataList'
+import { AnimalDataDetail } from './features/animals/AnimalDataDetail'
 
 function StaffRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -52,8 +54,10 @@ function App() {
         <Route index element={<Navigate to="/panel/supplies" replace />} />
         <Route path="supplies" element={<SupplyList />} />
         <Route path="supplies/:id" element={<SupplyItemDetail />} />
-        <Route path="animals" element={<AnimalList />} />
-        <Route path="animals/:id" element={<AnimalMedicalRecord />} />
+        <Route path="animals-medical" element={<AnimalList />} />
+        <Route path="animals-medical/:id" element={<AnimalMedicalRecord />} />
+        <Route path="animals-data" element={<AnimalDetailList />} />
+        <Route path="animals-data/:id" element={<AnimalDataDetail />} />
       </Route>
 
       {/* Redirect old routes to new panel routes */}
@@ -61,6 +65,7 @@ function App() {
       <Route path="/supplies/:id" element={<Navigate to="/panel/supplies" replace />} />
       <Route path="/animals" element={<Navigate to="/panel/animals" replace />} />
       <Route path="/animals/:id" element={<Navigate to="/panel/animals" replace />} />
+      <Route path="/animals-data/:id" element={<Navigate to="/panel/animals" replace />} />
     </Routes>
   )
 }
