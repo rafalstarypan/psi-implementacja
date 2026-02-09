@@ -132,6 +132,7 @@ class Task(models.Model):
         self.volunteers.add(user)
         if self.is_full():
             self.status = TaskStatus.PERSON_LIMIT_REACHED
+            self.save(update_fields=['status'])
 
     def remove_volunteer(self, user: User):
         if self.status == TaskStatus.COMPLETED or self.status == TaskStatus.UNCOMPLETED:
@@ -139,6 +140,7 @@ class Task(models.Model):
         if user in self.volunteers.all():
             if self.is_full():
                 self.status = TaskStatus.AVAILABLE
+                self.save(update_fields=['status'])
             self.volunteers.remove(user)
         else:
             raise ValidationError("User is not signed up for this task.")
