@@ -10,6 +10,7 @@ import { AnimalMedicalRecord } from '@/features/animals/AnimalMedicalRecord'
 import { AnimalDetailList } from './features/animals/AnimalDataList'
 import { AnimalDataDetail } from './features/animals/AnimalDataDetail'
 import { AnimalIntakesPage } from './features/animals/AnimalIntakesDetail'
+import { CreateAnimalWizard } from './features/animals/CreateAnimalWizard'
 
 function StaffRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth()

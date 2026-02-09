@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '@/api/client'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Search, Plus, Pencil } from 'lucide-react'
+import { CreateAnimalWizard, NewAnimalFormData } from './CreateAnimalWizard'
+
 
 interface Animal {
   id: number
@@ -61,11 +63,17 @@ const adoptionStatusMap: Record<string, { label: string; variant: 'default' | 'o
   DECEASED: { label: 'Unavailable', variant: 'outline' },
 }
 
+
+
+
 export function AnimalDetailList() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [speciesFilter, setSpeciesFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [wizardOpen, setWizardOpen] = useState(false)
+  const [animalList, setAnimalList] = useState<Animal[]>([])
+  const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['animals', search, speciesFilter, statusFilter],
@@ -79,6 +87,8 @@ export function AnimalDetailList() {
       return response.data as AnimalListResponse
     },
   })
+
+
 
   const animals = data?.results || []
   const totalCount = data?.count || 0
@@ -98,10 +108,14 @@ export function AnimalDetailList() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">List of animals</h1>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Animal
-        </Button>
+      <Button
+        variant="outline"
+        onClick={() => setWizardOpen(true)}
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add New Animal
+      </Button>
+
       </div>
 
       {/* Filters Card */}
@@ -230,6 +244,25 @@ export function AnimalDetailList() {
           )}
         </CardContent>
       </Card>
+
+  <CreateAnimalWizard
+    open={wizardOpen}
+    onClose={() => setWizardOpen(false)}
+    existingIds={animals.map(a => a.animal_id)}
+    onSave={async (newAnimal) => {
+      try {
+        await apiClient.post('/animals/', newAnimal)
+        // Refetch animals query
+        queryClient.invalidateQueries(['animals', search, speciesFilter, statusFilter])
+        // close wizard
+        setWizardOpen(false)
+      } catch (err) {
+        console.error('Error adding animal', err)
+      }
+    }}
+  />
+
+
     </div>
   )
 }
