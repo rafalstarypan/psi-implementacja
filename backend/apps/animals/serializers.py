@@ -425,3 +425,27 @@ class BehavioralTagDetailSerializer(serializers.ModelSerializer):
         ]
 
 
+class AnimalUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Animal
+        fields = [
+            "name",
+            "species",
+            "breed",
+            "sex",
+            "birth_date",
+            "coat_color",
+            "weight",
+            "identifying_marks",
+            "transponder_number",
+            "microchipping_date",
+            "behavioral_tags",
+            "parents",
+            "status",
+        ]
+        extra_kwargs = {
+            # allow PATCH without sending everything
+            field: {"required": False, "allow_null": True}
+            for field in fields
+        }
+

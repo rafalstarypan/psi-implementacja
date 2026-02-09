@@ -13,6 +13,7 @@ from .serializers import (
     AnimalCreateSerializer,
     AnimalListSerializer,
     AnimalDetailSerializer,
+    AnimalUpdateSerializer,
     BehavioralTagListSerializer,
     IntakeCreateSerializer,
     IntakeDetailSerializer,
@@ -54,6 +55,8 @@ class AnimalViewSet(viewsets.ModelViewSet):
             return AnimalCreateSerializer
         if self.action == 'retrieve':
             return AnimalDetailSerializer
+        if self.action in ["update", "partial_update"]:
+            return AnimalUpdateSerializer
         return AnimalListSerializer
 
     @action(detail=True, methods=['get', 'post'])

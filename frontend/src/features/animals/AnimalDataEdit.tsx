@@ -1,0 +1,322 @@
+import { useEffect, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { useQuery, useMutation } from "@tanstack/react-query"
+import { format } from "date-fns"
+
+import apiClient from "@/api/client"
+import { Animal } from "./types"
+import { mapAnimalFromApi } from "./animal.mapper"
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+
+export function AnimalDataEdit() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+
+  const { data: animal, isLoading } = useQuery<Animal>({
+    queryKey: ["animal", id],
+    queryFn: async () => {
+      const res = await apiClient.get(`/animals/${id}/`)
+      return mapAnimalFromApi(res.data)
+    },
+    enabled: !!id,
+  })
+
+  const [form, setForm] = useState<Partial<Animal>>({})
+
+  /** initialize form once animal is loaded */
+  useEffect(() => {
+    if (animal) {
+      setForm({
+        ...animal,
+        birthDate: animal.birthDate
+          ? format(new Date(animal.birthDate), "yyyy-MM-dd")
+          : null,
+        microchippingDate: animal.microchippingDate
+          ? format(new Date(animal.microchippingDate), "yyyy-MM-dd")
+          : null,
+      })
+    }
+  }, [animal])
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      return apiClient.patch(`/animals/${id}/`, {
+        name: form.name,
+        species: form.species,
+        breed: form.breed,
+        sex: form.sex,
+        birth_date: form.birthDate,
+        coat_color: form.coatColor,
+        weight: form.weight,
+        identifying_marks: form.identifyingMarks,
+        transponder_number: form.transponderNumber,
+        microchipping_date: form.microchippingDate,
+        behavioral_tags: form.behavioralTags,
+        parents: form.parents,
+        status: form.shelterStatus,
+      })
+    },
+    onSuccess: () => {
+      navigate(`/panel/animals-data/${id}`)
+    },
+  })
+
+  if (isLoading || !animal) {
+    return <div className="py-10 text-center">Loading…</div>
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Edit animal</h1>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
+            <Button onClick={() => updateMutation.mutate()}>
+              Save changes
+            </Button>
+          </div>
+        </div>
+
+        {/* Basic info */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>Edit core animal data</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <InputField
+              label="Name"
+              value={form.name ?? ""}
+              onChange={(v) => setForm({ ...form, name: v })}
+            />
+
+            <InputField
+              label="Breed"
+              value={form.breed ?? ""}
+              onChange={(v) => setForm({ ...form, breed: v })}
+            />
+
+            <SelectField
+              label="Species"
+              value={form.species ?? ""}
+              onChange={(v) => setForm({ ...form, species: v })}
+              options={[
+                { value: "DOG", label: "Dog" },
+                { value: "CAT", label: "Cat" },
+                { value: "OTHER", label: "Other" },
+              ]}
+            />
+
+            <SelectField
+              label="Sex"
+              value={form.sex ?? ""}
+              onChange={(v) => setForm({ ...form, sex: v })}
+              options={[
+                { value: "MALE", label: "Male" },
+                { value: "FEMALE", label: "Female" },
+              ]}
+            />
+
+            <InputField
+              label="Birth date"
+              type="date"
+              value={form.birthDate ?? ""}
+              onChange={(v) => setForm({ ...form, birthDate: v || null})}
+            />
+
+        <InputField
+          label="Transponder number"
+          value={form.transponderNumber ?? ""}
+          onChange={(v) => setForm({ ...form, transponderNumber: v || null })}
+        />
+
+               <InputField
+         label="Microchipping date"
+         type="date"
+         value={form.microchippingDate ?? ""}
+         onChange={(v) => setForm({ ...form, microchippingDate: v || null })}
+/>
+
+              <TextareaField
+  label="Parents (comma separated)"
+  value={(form.parents ?? []).join(", ")}
+  onChange={(v) =>
+    setForm({
+      ...form,
+      parents: v
+        .split(",")
+        .map(p => p.trim())
+        .filter(Boolean),
+    })
+  }
+/>
+
+<div className="flex flex-col gap-2">
+  <Label>Shelter status</Label>
+
+  <Select
+    value={form.shelterStatus}
+    onValueChange={(v) =>
+      setForm({ ...form, shelterStatus: v })
+    }
+  >
+    <SelectTrigger>
+      <SelectValue />
+    </SelectTrigger>
+
+    <SelectContent>
+      <SelectItem value="NEW_INTAKE">New intake</SelectItem>
+      <SelectItem value="IN_SHELTER">In shelter</SelectItem>
+      <SelectItem value="QUARANTINE">Quarantine</SelectItem>
+      <SelectItem value="MEDICAL_TREATMENT">Medical treatment</SelectItem>
+      <SelectItem value="ADOPTED">Adopted</SelectItem>
+      <SelectItem value="DECEASED">Deceased</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
+
+
+
+
+
+          </CardContent>
+        </Card>
+
+        {/* Appearance */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <InputField
+              label="Coat color"
+              value={form.coatColor ?? ""}
+              onChange={(v) => setForm({ ...form, coatColor: v })}
+            />
+
+            <InputField
+              label="Weight (kg)"
+              type="number"
+              value={form.weight?.toString() ?? ""}
+              onChange={(v) => setForm({ ...form, weight: Number(v) })}
+            />
+
+            <TextareaField
+              label="Identifying marks"
+              value={form.identifyingMarks ?? ""}
+              onChange={(v) => setForm({ ...form, identifyingMarks: v })}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Behavior */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Behavior</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TextareaField
+              label="Behavioral tags (comma separated)"
+              value={(form.behavioralTags ?? []).join(", ")}
+              onChange={(v) =>
+                setForm({
+                  ...form,
+                  behavioralTags: v.split(",").map(s => s.trim()).filter(Boolean),
+                })
+              }
+            />
+          </CardContent>
+        </Card>
+
+      </div>
+    </div>
+  )
+
+}
+
+
+function InputField({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string
+  value: string
+  type?: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm text-gray-500">{label}</label>
+      <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  )
+}
+
+function TextareaField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm text-gray-500">{label}</label>
+      <Textarea value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  )
+}
+
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm text-gray-500">{label}</label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}

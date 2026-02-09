@@ -53,7 +53,7 @@ export function AnimalDataDetail() {
             </Button>
 
             <Button
-              onClick={() => navigate(`/panel/animals/${animal.animalId}/edit`)}
+              onClick={() => navigate(`/panel/animals-data/${id}/edit`)}
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit info
@@ -79,11 +79,11 @@ export function AnimalDataDetail() {
                 icon={<CalendarIcon className="h-4 w-4" />}
               />
             )}
-            <Info label="Shelter status" value={animal.shelterStatus} />
-            <Info label="Adoption status" value={animal.adoptionStatus} />
             <Info label="Transponder number" value={animal.transponderNumber ? animal.transponderNumber : "No transponder"} />
             <Info label="Microchipping date" value={animal.microchippingDate ? format(new Date(animal.microchippingDate), "PPP") : "Not microchipped"} />
             <StringList label="Parents" items={animal.parents} emptyText="No known parents" />
+            <Info label="Shelter status" value={animal.shelterStatus} />
+            <Info label="Adoption status" value={animal.adoptionStatus} />
 
           </CardContent>
         </Card>

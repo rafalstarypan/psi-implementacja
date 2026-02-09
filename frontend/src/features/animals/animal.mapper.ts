@@ -6,17 +6,17 @@ export function mapAnimalFromApi(api: any): Animal {
     animalId: api.animal_id,
 
     name: api.name,
-    species: api.species_display,
+    species: api.species,
     breed: api.breed,
 
-    sex: api.sex_display,
+    sex: api.sex,
     age: api.age_display,
 
     coatColor: api.coat_color,
     weight: Number(api.weight),
 
     identifyingMarks: api.identifying_marks,
-    shelterStatus: api.status_display,
+    shelterStatus: api.status,
     adoptionStatus: api.status_display,
 
     birthDate: api.birth_date ? new Date(api.birth_date) : null,

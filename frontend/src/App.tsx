@@ -10,7 +10,7 @@ import { AnimalMedicalRecord } from '@/features/animals/AnimalMedicalRecord'
 import { AnimalDetailList } from './features/animals/AnimalDataList'
 import { AnimalDataDetail } from './features/animals/AnimalDataDetail'
 import { AnimalIntakesPage } from './features/animals/AnimalIntakesDetail'
-import { CreateAnimalWizard } from './features/animals/CreateAnimalWizard'
+import { AnimalDataEdit } from './features/animals/AnimalDataEdit'
 
 function StaffRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -61,6 +61,7 @@ function App() {
         <Route path="animals-data" element={<AnimalDetailList />} />
         <Route path="animals-data/:id" element={<AnimalDataDetail />} />
         <Route path="animals-data/:id/intakes" element={<AnimalIntakesPage />} />
+        <Route path="animals-data/:id/edit" element={<AnimalDataEdit />} />
       </Route>
 
       {/* Redirect old routes to new panel routes */}
@@ -69,6 +70,7 @@ function App() {
       <Route path="/animals" element={<Navigate to="/panel/animals" replace />} />
       <Route path="/animals/:id" element={<Navigate to="/panel/animals" replace />} />
       <Route path="/animals-data/:id" element={<Navigate to="/panel/animals" replace />} />
+
     </Routes>
   )
 }
