@@ -78,6 +78,15 @@ class Command(BaseCommand):
                 'schedule': schedules.first(),
                 'status': TaskStatus.AVAILABLE,
             },
+                        {
+                'name': 'Socialize cats',
+                'description': 'Play with dogs to keep them happy and healthy.',
+                'datetime_offset_days': 1,
+                'duration_in_minutes': 30,
+                'maxVolunteers': 1,
+                'schedule': schedules.first(),
+                'status': TaskStatus.AVAILABLE,
+            },
         ]
 
         for data in tasks_data:

@@ -31,6 +31,7 @@ export type Task = {
   personLimit: number;
   volunteerCount: number;
   status: TaskStatus;
+  duration: number;
 };
 
 // ---------------------- HELPERS ----------------------
@@ -75,6 +76,7 @@ export function VolunteerSchedulesDetail() {
             date: new Date(task.datetime),
             personLimit: task.maxVolunteers,
             volunteerCount: task.volunteers_count,
+            duration: task.duration_in_minutes,
             status: task.status,
           }))
         );
@@ -161,6 +163,8 @@ export function VolunteerSchedulesDetail() {
   // ---------------------- UI ----------------------
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gray-50">
+        <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-1/2">
       {/* Calendar */}
       <Calendar
         mode="single"
@@ -172,8 +176,10 @@ export function VolunteerSchedulesDetail() {
           hasTasks: { fontWeight: "bold", textDecoration: "underline" },
         }}
       />
+      </div>
 
       {/* Tasks */}
+      <div className="md:w-1/2 flex flex-col gap-4 overflow-y-auto max-h-screen">
       {tasksForSelectedDate.map(task => {
         const signedUp = myTaskIds.includes(task.id);
         const canSignUp =
@@ -186,10 +192,26 @@ export function VolunteerSchedulesDetail() {
               <CardTitle>{task.title}</CardTitle>
               <CardDescription>{task.description}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p><strong>Date:</strong> {format(task.date, "PPpp")}</p>
-              <p><strong>Volunteers:</strong> {task.volunteerCount} / {task.personLimit}</p>
-              <p><strong>Status:</strong> {task.status}</p>
+            <CardContent className="space-y-3 text-sm text-gray-700">
+                           <div className="flex items-center space-x-2">
+               <CalendarIcon className="w-4 h-4 text-gray-500" />
+               <span>{format(task.date, "PPpp")}</span>
+             </div>
+             <div className="flex items-center space-x-2">
+               <Users className="w-4 h-4 text-gray-500" />
+               <span>{task.volunteerCount} / {task.personLimit} volunteers</span>
+             </div>
+                <div className="flex items-center space-x-2">
+               <Clock className="w-4 h-4 text-gray-500" />
+               <span> {task.duration} minutes</span>
+             </div>
+             <div className="flex items-center space-x-2">
+               <CheckCircle2 className="w-4 h-4 text-gray-500" />
+               <Badge className="capitalize" variant={getStatusVariant(task.status)}>
+                 {task.status.replace("_", " ")}
+               </Badge>
+             </div>
+
               {signedUp ? (
                 <Button variant="outline" onClick={() => handleCancelSignUp(task.id)}>
                   Cancel Sign-Up
@@ -212,6 +234,21 @@ export function VolunteerSchedulesDetail() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Sign-Up</AlertDialogTitle>
           </AlertDialogHeader>
+          <AlertDialogDescription>
+        {taskToSignUp && (
+          <div className="space-y-1 text-sm text-gray-700">
+            <p>
+              <strong>Task:</strong> {taskToSignUp.title}
+            </p>
+            <p>
+              <strong>Date & Time:</strong> {format(taskToSignUp.date, "PPpp")}
+            </p>
+            <p>
+              <strong>Duration:</strong> {taskToSignUp.duration} minutes
+            </p>
+          </div>
+        )}
+          </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
@@ -222,6 +259,8 @@ export function VolunteerSchedulesDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+    </div>
     </div>
   );
 }

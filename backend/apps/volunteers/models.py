@@ -130,11 +130,15 @@ class Task(models.Model):
         if self.volunteers.count() >= self.maxVolunteers:
             raise ValueError("Task is already full!")
         self.volunteers.add(user)
+        if self.is_full():
+            self.status = TaskStatus.PERSON_LIMIT_REACHED
 
     def remove_volunteer(self, user: User):
         if self.status == TaskStatus.COMPLETED or self.status == TaskStatus.UNCOMPLETED:
             raise ValidationError("Cannot remove volunteer from a closed task.")
         if user in self.volunteers.all():
+            if self.is_full():
+                self.status = TaskStatus.AVAILABLE
             self.volunteers.remove(user)
         else:
             raise ValidationError("User is not signed up for this task.")
