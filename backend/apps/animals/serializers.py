@@ -168,7 +168,7 @@ class AnimalDetailSerializer(serializers.ModelSerializer):
             'breed', 'birth_date', 'age_display', 'sex', 'sex_display',
             'coat_color', 'weight', 'identifying_marks', 'transponder_number',
             'status', 'status_display', 'notes', 'intake_date', 'microchipping_date',
-            'medications', 'vaccinations', 'medical_procedures', 'behavioral_tags', 'parents', 'photos', 'intakes'
+            'medications', 'vaccinations', 'medical_procedures', 'behavioral_tags', 'parents', 'photos', 'intakes', 'last_measured'
         ]
 
     def get_medications(self, obj):
@@ -436,6 +436,7 @@ class AnimalUpdateSerializer(serializers.ModelSerializer):
             "birth_date",
             "coat_color",
             "weight",
+            "last_measured",
             "identifying_marks",
             "transponder_number",
             "microchipping_date",

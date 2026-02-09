@@ -89,7 +89,10 @@ export function AnimalDataDetail() {
         </Card>
 
         {/* Identifying marks */}
-        {animal.identifyingMarks && (
+        {(animal.identifyingMarks ||
+          animal.coatColor ||
+          animal.weight ||
+          animal.lastMeasured) && (
           <Card>
             <CardHeader>
               <CardTitle>Appearance</CardTitle>
@@ -98,13 +101,7 @@ export function AnimalDataDetail() {
             <Info label="Identifying marks" value={animal.identifyingMarks} />
             <Info label="Coat color" value={animal.coatColor} />
             <Info label="Weight" value={`${animal.weight} kg`} />
-            {animal.lastMeasured && (
-              <Info
-                label="Last measured"
-                value={format(new Date(animal.lastMeasured), "PPP")}
-                icon={<CalendarIcon className="h-4 w-4" />}
-              />
-            )}
+            <Info label="Last measured" value={animal.lastMeasured ? format(new Date(animal.lastMeasured), "PPP") : "No date"} />
 
             </CardContent>
           </Card>

@@ -12,6 +12,7 @@ import { AnimalDataDetail } from './features/animals/AnimalDataDetail'
 import { AnimalIntakesPage } from './features/animals/AnimalIntakesDetail'
 import { AnimalDataEdit } from './features/animals/AnimalDataEdit'
 import { VolunteerSchedulesDetail } from './features/volunteers/ScheduleDetail'
+import { Toaster } from "sonner"
 
 function StaffRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -67,6 +68,7 @@ function VolunteerRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
+    <>
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<HomePage />} />
@@ -116,6 +118,8 @@ function App() {
       <Route path="/animals-data/:id" element={<Navigate to="/panel/animals" replace />} />
 
     </Routes>
+          <Toaster richColors position="top-right" />
+    </>
   )
 }
 

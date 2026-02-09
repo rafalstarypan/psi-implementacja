@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { format } from "date-fns"
+import { toast } from "sonner"
 
 import apiClient from "@/api/client"
 import { Animal } from "./types"
@@ -46,6 +47,9 @@ export function AnimalDataEdit() {
         microchippingDate: animal.microchippingDate
           ? format(new Date(animal.microchippingDate), "yyyy-MM-dd")
           : null,
+        lastMeasured: animal.lastMeasured
+          ? format(new Date(animal.lastMeasured), "yyyy-MM-dd")
+          : null
       })
     }
   }, [animal])
@@ -64,6 +68,7 @@ export function AnimalDataEdit() {
         transponder_number: form.transponderNumber,
         microchipping_date: form.microchippingDate,
         behavioral_tags: form.behavioralTags,
+        last_measured: form.lastMeasured,
         parents: form.parents,
         status: form.shelterStatus,
       })
@@ -71,7 +76,19 @@ export function AnimalDataEdit() {
     onSuccess: () => {
       navigate(`/panel/animals-data/${id}`)
     },
+onError: (error: any) => {
+  const data = error.response?.data
+
+  const message =
+    typeof data === "string"
+      ? data
+      : formatApiError(data) ||
+        "Failed to update animal. Please check your input."
+
+  toast.error("Validation error", {
+    description: message,
   })
+},})
 
   if (isLoading || !animal) {
     return <div className="py-10 text-center">Loading…</div>
@@ -220,6 +237,13 @@ export function AnimalDataEdit() {
               onChange={(v) => setForm({ ...form, weight: Number(v) })}
             />
 
+                           <InputField
+         label="Last measured"
+         type="date"
+         value={form.lastMeasured ?? ""}
+         onChange={(v) => setForm({ ...form, lastMeasured: v || null })}
+/>
+
             <TextareaField
               label="Identifying marks"
               value={form.identifyingMarks ?? ""}
@@ -319,4 +343,18 @@ function SelectField({
       </Select>
     </div>
   )
+}
+
+
+function formatApiError(data: any): string {
+  if (!data || typeof data !== "object") return String(data)
+
+  return Object.entries(data)
+    .map(([field, messages]) => {
+      if (Array.isArray(messages)) {
+        return `${field}: ${messages.join(", ")}`
+      }
+      return `${field}: ${messages}`
+    })
+    .join("\n\n")
 }
