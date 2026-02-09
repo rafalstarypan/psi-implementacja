@@ -19,7 +19,7 @@ export type Animal = {
   birthDate?: Date | null
   lastMeasured?: Date | null
 
-  behavioralTags: string[]
+  behavioralTags: number[]
   transponderNumber?: string | null
   microchippingDate?: Date | null
   parents: string[]
@@ -51,3 +51,24 @@ export interface Institution {
   email_address: string
   address: Address
 }
+
+export type Tag = {
+  id: number
+  name: string
+}
+
+export const tagsFromApi: Tag[] = [
+  { id: 1, name: "calm" },
+  { id: 2, name: "aggresive" },
+  { id: 3, name: "shy" },
+  { id: 4, name: "playful" },
+]
+
+
+export const tagNameToId = new Map(
+  tagsFromApi.map((t) => [t.name, t.id])
+)
+
+export const tagIdToName = new Map(
+  tagsFromApi.map((t) => [t.id, t.name])
+)

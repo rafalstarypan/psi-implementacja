@@ -425,7 +425,20 @@ class BehavioralTagDetailSerializer(serializers.ModelSerializer):
         ]
 
 
+from .models import Animal
+
 class AnimalUpdateSerializer(serializers.ModelSerializer):
+    # Input: accept list of animal_id strings
+    parents = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_null=True,
+        write_only=True  # only used for input
+    )
+
+    # Output: show list of animal_id strings
+    parents_display = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Animal
         fields = [
@@ -442,11 +455,47 @@ class AnimalUpdateSerializer(serializers.ModelSerializer):
             "microchipping_date",
             "behavioral_tags",
             "parents",
+            "parents_display",
             "status",
         ]
         extra_kwargs = {
-            # allow PATCH without sending everything
             field: {"required": False, "allow_null": True}
             for field in fields
         }
+
+    def get_parents_display(self, obj):
+        # Return list of animal_id strings for frontend
+        return [p.animal_id for p in obj.parents.all()]
+
+    def validate_parents(self, value):
+        """Convert list of animal_id strings to actual Animal objects"""
+        if value is None:
+            return []
+
+        animals = list(Animal.objects.filter(animal_id__in=value))
+
+        if len(animals) != len(value):
+            found_ids = {a.animal_id for a in animals}
+            missing = [aid for aid in value if aid not in found_ids]
+            raise serializers.ValidationError(f"Parents not found: {missing}")
+
+        return animals
+
+    def update(self, instance, validated_data):
+        # Pop ManyToMany fields first
+        parents = validated_data.pop("parents", None)
+        behavioral_tags = validated_data.pop("behavioral_tags", None)
+
+        # Update normal fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update M2M fields properly
+        if parents is not None:
+            instance.parents.set(parents)
+        if behavioral_tags is not None:
+            instance.behavioral_tags.set(behavioral_tags)
+
+        return instance
 

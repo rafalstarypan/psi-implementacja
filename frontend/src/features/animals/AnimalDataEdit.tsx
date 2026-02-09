@@ -5,7 +5,7 @@ import { format } from "date-fns"
 import { toast } from "sonner"
 
 import apiClient from "@/api/client"
-import { Animal } from "./types"
+import { Animal, Tag, tagsFromApi, tagIdToName, tagNameToId } from "./types"
 import { mapAnimalFromApi } from "./animal.mapper"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -20,6 +20,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { AsyncParentSelect } from "./animalNameLookup"
 
 export function AnimalDataEdit() {
   const { id } = useParams<{ id: string }>()
@@ -49,7 +50,12 @@ export function AnimalDataEdit() {
           : null,
         lastMeasured: animal.lastMeasured
           ? format(new Date(animal.lastMeasured), "yyyy-MM-dd")
-          : null
+          : null,
+              behavioralTags: Array.isArray(animal.behavioralTags)
+      ? animal.behavioralTags
+          .map((name) => tagNameToId.get(name))
+          .filter((id): id is number => id !== undefined)
+      : [],
       })
     }
   }, [animal])
@@ -172,19 +178,12 @@ onError: (error: any) => {
          onChange={(v) => setForm({ ...form, microchippingDate: v || null })}
 />
 
-              <TextareaField
-  label="Parents (comma separated)"
-  value={(form.parents ?? []).join(", ")}
-  onChange={(v) =>
-    setForm({
-      ...form,
-      parents: v
-        .split(",")
-        .map(p => p.trim())
-        .filter(Boolean),
-    })
-  }
+<AsyncParentSelect
+  label="Parents"
+  value={form.parents}          // ["CAT-002", "CAT-005"]
+  onChange={(animalIds) => setForm({ ...form, parents: animalIds })}
 />
+
 
 <div className="flex flex-col gap-2">
   <Label>Shelter status</Label>
@@ -258,16 +257,18 @@ onError: (error: any) => {
             <CardTitle>Behavior</CardTitle>
           </CardHeader>
           <CardContent>
-            <TextareaField
-              label="Behavioral tags (comma separated)"
-              value={(form.behavioralTags ?? []).join(", ")}
-              onChange={(v) =>
-                setForm({
-                  ...form,
-                  behavioralTags: v.split(",").map(s => s.trim()).filter(Boolean),
-                })
-              }
-            />
+          <MultiTagSelect
+            label="Behavioral tags"
+            options={tagsFromApi}
+            value={form.behavioralTags ?? []}
+            onChange={(ids) =>
+              setForm({
+                ...form,
+                behavioralTags: ids,
+              })
+            }
+          />
+
           </CardContent>
         </Card>
 
@@ -357,4 +358,57 @@ function formatApiError(data: any): string {
       return `${field}: ${messages}`
     })
     .join("\n\n")
+}
+
+type Props = {
+  label: string
+  options: Tag[]
+  value: number[]
+  onChange: (value: number[]) => void
+}
+
+
+type MultiTagSelectProps = {
+  label: string
+  options: Tag[]          
+  value: number[] 
+  onChange: (value: number[]) => void
+}
+
+
+export function MultiTagSelect({
+  label,
+  options,
+  value,
+  onChange,
+}: Props) {
+  const toggle = (id: number) => {
+    onChange(
+      value.includes(id)
+        ? value.filter((v) => v !== id)
+        : [...value, id]
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{label}</label>
+
+      <div className="border rounded-md p-3 space-y-2">
+        {options.map((tag) => (
+          <label
+            key={tag.id}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              checked={value.includes(tag.id)}
+              onChange={() => toggle(tag.id)}
+            />
+            <span className="text-sm">{tag.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
 }
