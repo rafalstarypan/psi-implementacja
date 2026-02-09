@@ -4,12 +4,16 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PawPrint, Package, Stethoscope, LogOut, User, Home, DogIcon } from 'lucide-react'
 
-export function Layout() {
+interface LayoutProps {
+  panel?: 'staff' | 'volunteers'
+}
+
+export function Layout({ panel }: LayoutProps)  {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
-  const navigation = [
+  let navigation = [
     {
       name: 'Zaopatrzenie',
       href: '/panel/supplies',
@@ -26,6 +30,15 @@ export function Layout() {
       icon: DogIcon,
     },
   ]
+
+  if (panel === 'volunteers') {
+    navigation = [
+      { name: 'Harmonogram', href: '/panel/volunteers/schedules', icon: Stethoscope },
+    ]
+  }
+
+
+
 
   const handleLogout = () => {
     logout()
