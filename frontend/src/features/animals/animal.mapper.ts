@@ -25,5 +25,6 @@ export function mapAnimalFromApi(api: any): Animal {
     behavioralTags: api.behavioral_tags ?? [],
     transponderNumber: api.transponder_number,
     microchippingDate: api.microchipping_date ? new Date(api.microchipping_date) : null,
+    parents: api.parents ?? [],
   }
 }

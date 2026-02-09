@@ -46,7 +46,7 @@ export function AnimalDataDetail() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => navigate(`/panel/animals/${animal.animalId}/intakes`)}
+              onClick={() => navigate(`/panel/animals-data/${id}/intakes`)}
             >
               <History className="h-4 w-4 mr-2" />
               Intakes history
@@ -71,20 +71,19 @@ export function AnimalDataDetail() {
             <Info label="Species" value={animal.species} />
             <Info label="Breed" value={animal.breed} />
             <Info label="Sex" value={animal.sex} />
-            <Info label="Age" value={`${animal.age} years`} />
+            <Info label="Age" value={`${animal.age}`} />
+            {animal.birthDate && (
+              <Info
+                label="Birth date"
+                value={animal.birthDate ? format(new Date(animal.birthDate), "PPP") : "No birth date"}
+                icon={<CalendarIcon className="h-4 w-4" />}
+              />
+            )}
             <Info label="Shelter status" value={animal.shelterStatus} />
             <Info label="Adoption status" value={animal.adoptionStatus} />
             <Info label="Transponder number" value={animal.transponderNumber ? animal.transponderNumber : "No transponder"} />
             <Info label="Microchipping date" value={animal.microchippingDate ? format(new Date(animal.microchippingDate), "PPP") : "Not microchipped"} />
-
-            {animal.birthDate && (
-              <Info
-                label="Birth date"
-                value={format(new Date(animal.birthDate), "PPP")}
-                icon={<CalendarIcon className="h-4 w-4" />}
-              />
-            )}
-
+            <StringList label="Parents" items={animal.parents} emptyText="No known parents" />
 
           </CardContent>
         </Card>
@@ -106,6 +105,7 @@ export function AnimalDataDetail() {
                 icon={<CalendarIcon className="h-4 w-4" />}
               />
             )}
+
             </CardContent>
           </Card>
         )}
@@ -113,18 +113,10 @@ export function AnimalDataDetail() {
         {/* Behavior */}
         <Card>
           <CardHeader>
-            <CardTitle>Behavior</CardTitle>
+            <CardTitle>Promotion & Behavior</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {animal.behavioralTags.length ? (
-                animal.behavioralTags.map(tag => (
-                  <Badge key={tag} variant="secondary">{tag}</Badge>
-                ))
-              ) : (
-                <p className="text-sm text-gray-400">No behavioral tags</p>
-              )}
-            </div>
+            <StringList label="Behavioral tags" items={animal.behavioralTags} emptyText="No behavioral tags" />
           </CardContent>
         </Card>
 
@@ -149,6 +141,31 @@ function Info({
         {icon}
         {value ?? "No data"}
       </span>
+    </div>
+  )
+}
+
+interface StringListProps {
+  label: string
+  items?: string[] | null
+  emptyText?: string
+}
+
+export function StringList({ label, items, emptyText = "No data" }: StringListProps) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-gray-500 mb-1">{label}</span>
+      <div className="flex flex-wrap gap-2">
+        {items && items.length > 0 ? (
+          items.map((item, index) => (
+            <Badge key={index} variant="secondary">
+              {item}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-gray-400 text-sm">{emptyText}</span>
+        )}
+      </div>
     </div>
   )
 }
