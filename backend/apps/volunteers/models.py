@@ -4,6 +4,13 @@ from django.core.exceptions import ValidationError
 
 from apps.accounts.models import User
 
+class TaskStatus(models.TextChoices):
+    AVAILABLE = 'AVAILABLE', 'Available'
+    PERSON_LIMIT_REACHED = 'PERSON_LIMIT_REACHED', 'Person Limit Reached'
+    COMPLETED = 'COMPLETED', 'Completed'
+    UNCOMPLETED = 'UNCOMPLETED', 'Uncompleted'
+
+
 class Schedule(models.Model):
     """ Work schedule for volunteers. """
     schedule_id = models.CharField(
@@ -96,6 +103,12 @@ class Task(models.Model):
         related_name='tasks_signed_up',
     )
 
+    status = models.CharField(
+        verbose_name='Task Status',
+        max_length=20,
+        choices=TaskStatus.choices
+    )
+
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -110,6 +123,8 @@ class Task(models.Model):
     
 
     def add_volunteer(self, user):
+        if self.status == TaskStatus.COMPLETED or self.status == TaskStatus.UNCOMPLETED:
+            raise ValidationError("Cannot add volunteer to a closed task.")
         if self.volunteers.filter(pk=user.pk).exists():
             raise ValueError("User is already signed up for this task.")
         if self.volunteers.count() >= self.maxVolunteers:
@@ -117,7 +132,8 @@ class Task(models.Model):
         self.volunteers.add(user)
 
     def remove_volunteer(self, user: User):
-        """Remove a volunteer from this task."""
+        if self.status == TaskStatus.COMPLETED or self.status == TaskStatus.UNCOMPLETED:
+            raise ValidationError("Cannot remove volunteer from a closed task.")
         if user in self.volunteers.all():
             self.volunteers.remove(user)
         else:

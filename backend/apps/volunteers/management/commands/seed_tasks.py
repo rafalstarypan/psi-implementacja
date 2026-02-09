@@ -1,6 +1,6 @@
 import uuid
 from django.core.management.base import BaseCommand
-from apps.volunteers.models import Schedule, Task
+from apps.volunteers.models import Schedule, Task, TaskStatus
 from django.utils import timezone
 from datetime import timedelta
 
@@ -58,6 +58,7 @@ class Command(BaseCommand):
                 'duration_in_minutes': 60,
                 'maxVolunteers': 3,
                 'schedule': schedules.first(), 
+                'status': TaskStatus.AVAILABLE,
             },
             {
                 'name': 'Feed animals',
@@ -65,7 +66,8 @@ class Command(BaseCommand):
                 'datetime_offset_days': 2,
                 'duration_in_minutes': 45,
                 'maxVolunteers': 2,
-                'schedule': schedules.last(),  
+                'schedule': schedules.last(), 
+                'status': TaskStatus.COMPLETED, 
             },
             {
                 'name': 'Socialize dogs',
@@ -74,6 +76,7 @@ class Command(BaseCommand):
                 'duration_in_minutes': 30,
                 'maxVolunteers': 4,
                 'schedule': schedules.first(),
+                'status': TaskStatus.AVAILABLE,
             },
         ]
 
@@ -87,6 +90,7 @@ class Command(BaseCommand):
                     'datetime': task_datetime,
                     'duration_in_minutes': data['duration_in_minutes'],
                     'maxVolunteers': data['maxVolunteers'],
+                    'status': data['status'],
                     'task_id': uuid.uuid4()
                 }
             )

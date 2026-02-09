@@ -16,6 +16,7 @@ class TaskSerializer(serializers.ModelSerializer):
             'duration_in_minutes',
             'maxVolunteers',
             'volunteers_count',
+            'status'
         ]
 
     def get_volunteers_count(self, obj):

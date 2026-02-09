@@ -20,9 +20,10 @@ class TaskViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Task.objects.prefetch_related('volunteers').all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
+    lookup_field = 'task_id'
 
     @action(detail=True, methods=['post'], url_path='signup')
-    def signup(self, request, pk=None):
+    def signup(self, request, *args, **kwargs):
         task = self.get_object()
         serializer = TaskSignUpSerializer(data=request.data, context={'request': request, 'task': task})
         serializer.is_valid(raise_exception=True)
@@ -34,7 +35,7 @@ class TaskViewSet(viewsets.ReadOnlyModelViewSet):
         })
     
     @action(detail=True, methods=['post'], url_path='remove')
-    def remove(self, request, pk=None):
+    def remove(self, request, *args, **kwargs):
         task = self.get_object()
         serializer = TaskRemoveVolunteerSerializer(data=request.data, context={'request': request, 'task': task})
         serializer.is_valid(raise_exception=True)
@@ -42,4 +43,19 @@ class TaskViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({
             'message': 'User removed successfully',
             'volunteers_count': task.volunteers.count()
+        })
+    
+    
+    @action(detail=False, methods=["get"], url_path="my")
+    def my_tasks(self, request):
+        user = request.user
+
+        task_ids = (
+            Task.objects
+            .filter(volunteers=user)
+            .values_list("task_id", flat=True)
+        )
+
+        return Response({
+            "task_ids": list(task_ids)
         })
