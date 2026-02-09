@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'apps.supplies',
     'apps.core',
     'apps.parties',
+    'apps.volunteers',
 ]
 
 MIDDLEWARE = [

@@ -12,4 +12,5 @@ urlpatterns = [
     path('api/supplies/', include('apps.supplies.urls')),
     path('api/parties/', include('apps.parties.urls')),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('api/volunteers/', include('apps.volunteers.urls')),
 ]
