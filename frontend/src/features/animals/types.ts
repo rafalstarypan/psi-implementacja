@@ -16,12 +16,12 @@ export type Animal = {
   shelterStatus: string
   adoptionStatus: string
 
-  birthDate?: Date | null
-  lastMeasured?: Date | null
+  birthDate?: string | null
+  lastMeasured?: string | null
 
   behavioralTags: number[]
   transponderNumber?: string | null
-  microchippingDate?: Date | null
+  microchippingDate?: string | null
   parents: string[]
 }
 

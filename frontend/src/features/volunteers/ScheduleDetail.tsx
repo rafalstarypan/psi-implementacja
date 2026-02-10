@@ -4,7 +4,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,15 +34,6 @@ export type Task = {
 };
 
 // ---------------------- HELPERS ----------------------
-const getStatusColor = (status: TaskStatus) => {
-  switch (status) {
-    case "AVAILABLE": return "bg-green-500";
-    case "PERSON_LIMIT_REACHED": return "bg-orange-500";
-    case "COMPLETED": return "bg-blue-500";
-    case "UNCOMPLETED": return "bg-red-500";
-  }
-};
-
 const getStatusVariant = (status: TaskStatus) => {
   switch (status) {
     case "AVAILABLE": return "default";
@@ -55,7 +45,7 @@ const getStatusVariant = (status: TaskStatus) => {
 
 
 export function VolunteerSchedulesDetail() {
-  const { user } = useAuth();
+  useAuth();
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);

@@ -92,7 +92,7 @@ export function IntakeSourceSelector({ onChange }: Props) {
       {/* Source Type */}
       <div className="grid gap-2">
         <Label>Source Type *</Label>
-        <Select value={sourceType} onValueChange={setSourceType}>
+        <Select value={sourceType} onValueChange={(v) => setSourceType(v as SourceType | "")}>
           <SelectTrigger>
             <SelectValue placeholder="Select source type" />
           </SelectTrigger>
@@ -117,7 +117,7 @@ export function IntakeSourceSelector({ onChange }: Props) {
           {/* Mode */}
           <div className="grid gap-2">
             <Label>Source Mode *</Label>
-            <Select value={mode} onValueChange={setMode}>
+            <Select value={mode} onValueChange={(v) => setMode(v as Mode)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

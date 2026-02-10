@@ -19,12 +19,12 @@ export function mapAnimalFromApi(api: any): Animal {
     shelterStatus: api.status,
     adoptionStatus: api.status_display,
 
-    birthDate: api.birth_date ? new Date(api.birth_date) : null,
+    birthDate: api.birth_date ?? null,
 
     behavioralTags: api.behavioral_tags ?? [],
     transponderNumber: api.transponder_number,
-    microchippingDate: api.microchipping_date ? new Date(api.microchipping_date) : null,
+    microchippingDate: api.microchipping_date ?? null,
     parents: api.parents ?? [],
-    lastMeasured: api.last_measured ? new Date(api.last_measured): null,
+    lastMeasured: api.last_measured ?? null,
   }
 }

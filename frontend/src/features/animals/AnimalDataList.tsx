@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Search, Plus, Pencil } from 'lucide-react'
-import { CreateAnimalWizard, NewAnimalFormData } from './CreateAnimalWizard'
+import { CreateAnimalWizard } from './CreateAnimalWizard'
 import { toast } from "sonner"
 
 
@@ -73,7 +73,6 @@ export function AnimalDetailList() {
   const [speciesFilter, setSpeciesFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [wizardOpen, setWizardOpen] = useState(false)
-  const [animalList, setAnimalList] = useState<Animal[]>([])
   const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
@@ -254,7 +253,7 @@ export function AnimalDetailList() {
       try {
         await apiClient.post('/animals/', newAnimal)
         // Refetch animals query
-        queryClient.invalidateQueries(['animals', search, speciesFilter, statusFilter])
+        queryClient.invalidateQueries({ queryKey: ['animals', search, speciesFilter, statusFilter] })
         // close wizard
         setWizardOpen(false)
       } catch (err) {

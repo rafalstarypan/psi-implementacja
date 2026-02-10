@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { AsyncParentSelect } from "./animalNameLookup"
 import {Tag, tagsFromApi } from "./types"
 import { IntakeSourceSelector } from "./IntakeSourceHandler";
@@ -38,10 +38,11 @@ export interface NewAnimalFormData {
   microchipping_date?: string | null;
   behavioral_tags?: number[];
   parents?: string[];
+  status?: string;
   intakes?: {
-    intake_type: string;
-    animal_condition: string;
-    location: string;
+    intake_type?: string;
+    animal_condition?: string;
+    location?: string;
     notes?: string;
     source_type?: string;
     source?: any;
@@ -59,7 +60,6 @@ export function CreateAnimalWizard({
   open,
   onClose,
   onSave,
-  existingIds,
 }: AddAnimalWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<NewAnimalFormData>>({
@@ -76,7 +76,7 @@ export function CreateAnimalWizard({
     microchipping_date: "",
     behavioral_tags: [],
     parents: [],
-    intakes: null,
+    intakes: undefined,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -176,7 +176,7 @@ export function CreateAnimalWizard({
       microchipping_date: formData.microchipping_date || null,
       behavioral_tags: formData.behavioral_tags || [],
       parents: formData.parents || [],
-      intakes: formData.intakes || null,
+      intakes: formData.intakes,
     };
 
     onSave(payload);
@@ -240,7 +240,7 @@ export function CreateAnimalWizard({
                 <Label>Birth Date</Label>
                 <Input
                   type="date"
-                  value={formData.birth_date}
+                  value={formData.birth_date ?? ""}
                   onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
                 />
               </div>
@@ -321,7 +321,7 @@ export function CreateAnimalWizard({
 
               <AsyncParentSelect
                 label="Parents"
-                value={formData.parents}   
+                value={formData.parents ?? []}
                 onChange={(animalIds) => setFormData({ ...formData, parents: animalIds })}
               />
 
@@ -418,7 +418,7 @@ export function CreateAnimalWizard({
       />
     </div>
 
-=<IntakeSourceSelector
+<IntakeSourceSelector
   onChange={(payload) =>
     setFormData({
       ...formData,
@@ -476,14 +476,6 @@ type Props = {
   label: string
   options: Tag[]
   value: number[]
-  onChange: (value: number[]) => void
-}
-
-
-type MultiTagSelectProps = {
-  label: string
-  options: Tag[]          
-  value: number[] 
   onChange: (value: number[]) => void
 }
 

@@ -9,7 +9,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { CalendarIcon, MapPin, Heart, User, Building } from "lucide-react"
 import { Person, Institution } from "./types"
 
@@ -114,7 +113,7 @@ function IntakeCard({ intake }: { intake: Intake }) {
             <div className="ml-2">
               <p>
                 <User className="inline w-4 h-4 mr-1" />
-                {source.firstname} {source.lastname}
+                {(source as Person).firstname} {(source as Person).lastname}
               </p>
               <p>Phone: {source.phone_number || "No data"}</p>
               <p>Email: {source.email_address || "No data"}</p>
@@ -130,7 +129,7 @@ function IntakeCard({ intake }: { intake: Intake }) {
             <div className="ml-2">
               <p>
                 <Building className="inline w-4 h-4 mr-1" />
-                {source.name || "No data"}
+                {(source as Institution).name || "No data"}
               </p>
               <p>Phone: {source.phone_number || "No data"}</p>
               <p>Email: {source.email_address || "No data"}</p>

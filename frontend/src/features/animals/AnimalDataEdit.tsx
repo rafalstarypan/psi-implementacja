@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useQuery, useMutation } from "@tanstack/react-query"
-import { format } from "date-fns"
 import { toast } from "sonner"
 
 import apiClient from "@/api/client"
-import { Animal, Tag, tagsFromApi, tagNameToId } from "./types"
+import { Animal, Tag, tagsFromApi } from "./types"
 import { mapAnimalFromApi } from "./animal.mapper"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -42,20 +41,7 @@ export function AnimalDataEdit() {
     if (animal) {
       setForm({
         ...animal,
-        birthDate: animal.birthDate
-          ? format(new Date(animal.birthDate), "yyyy-MM-dd")
-          : null,
-        microchippingDate: animal.microchippingDate
-          ? format(new Date(animal.microchippingDate), "yyyy-MM-dd")
-          : null,
-        lastMeasured: animal.lastMeasured
-          ? format(new Date(animal.lastMeasured), "yyyy-MM-dd")
-          : null,
-              behavioralTags: Array.isArray(animal.behavioralTags)
-      ? animal.behavioralTags
-          .map((name) => tagNameToId.get(name))
-          .filter((id): id is number => id !== undefined)
-      : [],
+        behavioralTags: animal.behavioralTags ?? [],
       })
     }
   }, [animal])
@@ -180,7 +166,7 @@ onError: (error: any) => {
 
 <AsyncParentSelect
   label="Parents"
-  value={form.parents}          // ["CAT-002", "CAT-005"]
+  value={form.parents ?? []}          // ["CAT-002", "CAT-005"]
   onChange={(animalIds) => setForm({ ...form, parents: animalIds })}
 />
 
@@ -364,14 +350,6 @@ type Props = {
   label: string
   options: Tag[]
   value: number[]
-  onChange: (value: number[]) => void
-}
-
-
-type MultiTagSelectProps = {
-  label: string
-  options: Tag[]          
-  value: number[] 
   onChange: (value: number[]) => void
 }
 

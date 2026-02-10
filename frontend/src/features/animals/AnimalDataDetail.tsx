@@ -6,7 +6,7 @@ import { format } from "date-fns"
 import { useNavigate, useParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import apiClient from '@/api/client'
-import { Animal } from "./types"
+import { Animal, tagIdToName } from "./types"
 import { mapAnimalFromApi } from "./animal.mapper"
 
 export function AnimalDataDetail() {
@@ -113,7 +113,7 @@ export function AnimalDataDetail() {
             <CardTitle>Promotion & Behavior</CardTitle>
           </CardHeader>
           <CardContent>
-            <StringList label="Behavioral tags" items={animal.behavioralTags} emptyText="No behavioral tags" />
+            <StringList label="Behavioral tags" items={animal.behavioralTags.map(id => tagIdToName.get(id) ?? String(id))} emptyText="No behavioral tags" />
           </CardContent>
         </Card>
 
