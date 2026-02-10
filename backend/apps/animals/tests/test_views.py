@@ -59,7 +59,7 @@ class TestAnimalViewSet:
         assert response.data['id'] == dog_max.id
         assert response.data['name'] == dog_max.name
         assert response.data['species'] == AnimalSpecies.DOG
-        assert response.data['species_display'] == 'Pies'
+        assert response.data['species_display'] == 'Dog'
 
 
 @pytest.mark.django_db

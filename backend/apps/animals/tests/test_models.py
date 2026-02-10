@@ -26,7 +26,7 @@ class TestAnimal:
         )
         assert animal.name == 'Max'
         assert animal.species == AnimalSpecies.DOG
-        assert str(animal) == 'Max (Pies)'
+        assert str(animal) == 'Max (Dog)'
 
     def test_animal_id_unique(self, dog_max):
         """Test that animal_id must be unique."""
@@ -46,7 +46,7 @@ class TestAnimal:
             name='Rex',
             birth_date=date.today() - timedelta(days=730),  # ~2 years
         )
-        assert 'lat' in animal.age_display or 'rok' in animal.age_display
+        assert 'years' in animal.age_display or 'year' in animal.age_display
 
     def test_age_display_months(self):
         """Test age_display for animals less than 1 year old."""
@@ -56,7 +56,7 @@ class TestAnimal:
             name='Puppy',
             birth_date=date.today() - timedelta(days=90),  # ~3 months
         )
-        assert 'mies' in animal.age_display
+        assert 'months' in animal.age_display
 
     def test_age_display_unknown(self):
         """Test age_display when birth_date is not set."""
@@ -65,7 +65,7 @@ class TestAnimal:
             species=AnimalSpecies.DOG,
             name='Unknown',
         )
-        assert animal.age_display == 'Nieznany'
+        assert animal.age_display == 'Unknown'
 
     def test_default_status(self):
         """Test that default status is NEW_INTAKE."""
