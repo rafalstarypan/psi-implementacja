@@ -5,7 +5,8 @@ import pytest
 from datetime import date, timedelta
 from decimal import Decimal
 from django.urls import reverse
-from apps.animals.models import AnimalSpecies
+from apps.animals.models import AnimalSpecies, Photo, Animal, BehavioralTag, Intake, IntakeType
+from django.core.exceptions import ValidationError
 
 
 @pytest.mark.django_db
@@ -185,3 +186,109 @@ class TestVeterinarianListView:
         url = reverse('animals:veterinarian-list')
         response = authenticated_volunteer.get(url)
         assert response.status_code == 403
+
+@pytest.mark.django_db
+class TestBehavioralTag:
+    """Tests for BehavioralTag model."""
+
+    def test_create_tag(self):
+        """Test creating a behavioral tag."""
+        tag = BehavioralTag.objects.create(
+            behavioral_tag_name='Agresywny',
+            description='Wykazuje agresję przy jedzeniu'
+        )
+        assert tag.behavioral_tag_name == 'Agresywny'
+        assert str(tag) == 'Agresywny'
+
+    def test_tag_name_unique(self):
+        """Test that behavioral_tag_name must be unique."""
+        BehavioralTag.objects.create(
+            behavioral_tag_name='Lękliwy',
+            description='Boi się hałasu'
+        )
+        from django.db import IntegrityError
+        with pytest.raises(IntegrityError):
+            BehavioralTag.objects.create(
+                behavioral_tag_name='Lękliwy',
+                description='Inny opis'
+            )
+
+
+@pytest.mark.django_db
+class TestAnimalExtended:
+    """Additional tests for Animal model features not covered in original tests."""
+
+    def test_age_display_less_than_month(self):
+        """Test age_display for animals born recently."""
+        animal = Animal.objects.create(
+            name='Baby',
+            species=AnimalSpecies.CAT,
+            birth_date=date.today() - timedelta(days=10)
+        )
+        assert animal.age_display == '1 months.'
+
+    def test_parent_validation_limit(self):
+        """Test that an animal cannot have more than 2 parents."""
+        child = Animal.objects.create(name='Child', species=AnimalSpecies.DOG)
+        parent1 = Animal.objects.create(name='Parent1', species=AnimalSpecies.DOG)
+        parent2 = Animal.objects.create(name='Parent2', species=AnimalSpecies.DOG)
+        parent3 = Animal.objects.create(name='Parent3', species=AnimalSpecies.DOG)
+
+        # Dodajemy rodziców
+        child.parents.add(parent1, parent2, parent3)
+
+        # Walidacja powinna rzucić błąd, ponieważ jest 3 rodziców
+        with pytest.raises(ValidationError) as excinfo:
+            child.clean()
+        
+        assert "An animal can have at most 2 parents" in str(excinfo.value)
+
+    def test_add_behavioral_tags(self):
+        """Test associating behavioral tags with an animal."""
+        animal = Animal.objects.create(name='Burek', species=AnimalSpecies.DOG)
+        tag = BehavioralTag.objects.create(
+            behavioral_tag_name='Przyjazny', 
+            description='Lubi ludzi'
+        )
+        
+        animal.behavioral_tags.add(tag)
+        assert animal.behavioral_tags.count() == 1
+        assert animal.behavioral_tags.first() == tag
+
+
+@pytest.mark.django_db
+class TestIntake:
+    """Tests for Intake model."""
+
+    def test_create_intake(self, dog_max):
+        """Test creating an intake record."""
+        intake = Intake.objects.create(
+            animal=dog_max,
+            intake_date=date.today(),
+            animal_condition='Dobry',
+            location='Ul. Główna 5',
+            notes='Znaleziony przy sklepie',
+            intake_type=IntakeType.STRAY,
+            source_type='person'
+        )
+        
+        assert intake.animal == dog_max
+        assert intake.intake_type == IntakeType.STRAY
+        # Sprawdzenie reprezentacji tekstowej (str)
+        expected_str = f'{dog_max.name} - {date.today()} - {IntakeType.STRAY.label}'
+        assert str(intake) == expected_str
+
+    def test_intake_defaults(self, dog_max):
+        """Test default values for intake."""
+        intake = Intake.objects.create(
+            animal=dog_max,
+            animal_condition='Zły',
+            location='Las',
+            notes='Brak',
+            intake_type=IntakeType.SURRENDER
+        )
+        # Data przyjęcia powinna być domyślnie dzisiejsza
+        assert intake.intake_date == date.today()
+        assert intake.intake_id is not None
+
+
