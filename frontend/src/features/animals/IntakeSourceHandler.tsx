@@ -21,6 +21,14 @@ type Props = {
   onChange: (value: IntakeSourcePayload | null) => void
 }
 
+const emptyAddress = {
+  city: "",
+  postal_code: "",
+  street: "",
+  building_number: "",
+  apartment_number: "",
+}
+
 export function IntakeSourceSelector({ onChange }: Props) {
   const [sourceType, setSourceType] = useState<SourceType | "">("")
   const [mode, setMode] = useState<Mode>("existing")
@@ -28,19 +36,20 @@ export function IntakeSourceSelector({ onChange }: Props) {
 
   const [person, setPerson] = useState({
     firstname: "",
+    lastname: "",
     email_address: "",
     phone_number: "",
-    address: {
-      city: "",
-      postal_code: "",
-      street: "",
-      building_number: "",
-      apartment_number: "",
-    },
+    address: emptyAddress,
+  })
+
+  const [institution, setInstitution] = useState({
+    name: "",
+    email_address: "",
+    phone_number: "",
+    address: emptyAddress,
   })
 
   useEffect(() => {
-    // nothing selected yet
     if (!sourceType) {
       onChange(null)
       return
@@ -69,12 +78,14 @@ export function IntakeSourceSelector({ onChange }: Props) {
       return
     }
 
-    // NEW PERSON / INSTITUTION
+    // NEW PERSON / INSTITUTION → WRAPPED IN data
     onChange({
       source_type: sourceType,
-      source: person,
+      source: {
+        data: sourceType === "person" ? person : institution,
+      },
     })
-  }, [sourceType, mode, existingId, person, onChange])
+  }, [sourceType, mode, existingId, person, institution, onChange])
 
   return (
     <div className="space-y-4">
@@ -129,16 +140,24 @@ export function IntakeSourceSelector({ onChange }: Props) {
             </div>
           )}
 
-          {/* New Person / Institution */}
-          {mode === "new" && (
+          {/* NEW PERSON */}
+          {mode === "new" && sourceType === "person" && (
             <div className="grid gap-3 border rounded p-3">
-              <Label>Create new {sourceType}</Label>
+              <Label>Create new person</Label>
 
               <Input
                 placeholder="First name"
                 value={person.firstname}
                 onChange={(e) =>
                   setPerson({ ...person, firstname: e.target.value })
+                }
+              />
+
+              <Input
+                placeholder="Last name"
+                value={person.lastname}
+                onChange={(e) =>
+                  setPerson({ ...person, lastname: e.target.value })
                 }
               />
 
@@ -158,71 +177,109 @@ export function IntakeSourceSelector({ onChange }: Props) {
                 }
               />
 
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder="City"
-                  value={person.address.city}
-                  onChange={(e) =>
-                    setPerson({
-                      ...person,
-                      address: { ...person.address, city: e.target.value },
-                    })
-                  }
-                />
-                <Input
-                  placeholder="Postal code"
-                  value={person.address.postal_code}
-                  onChange={(e) =>
-                    setPerson({
-                      ...person,
-                      address: {
-                        ...person.address,
-                        postal_code: e.target.value,
-                      },
-                    })
-                  }
-                />
-                <Input
-                  placeholder="Street"
-                  value={person.address.street}
-                  onChange={(e) =>
-                    setPerson({
-                      ...person,
-                      address: { ...person.address, street: e.target.value },
-                    })
-                  }
-                />
-                <Input
-                  placeholder="Building number"
-                  value={person.address.building_number}
-                  onChange={(e) =>
-                    setPerson({
-                      ...person,
-                      address: {
-                        ...person.address,
-                        building_number: e.target.value,
-                      },
-                    })
-                  }
-                />
-                <Input
-                  placeholder="Apartment number"
-                  value={person.address.apartment_number}
-                  onChange={(e) =>
-                    setPerson({
-                      ...person,
-                      address: {
-                        ...person.address,
-                        apartment_number: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
+              <AddressFields
+                address={person.address}
+                onChange={(address) =>
+                  setPerson({ ...person, address })
+                }
+              />
+            </div>
+          )}
+
+          {/* NEW INSTITUTION */}
+          {mode === "new" && sourceType === "institution" && (
+            <div className="grid gap-3 border rounded p-3">
+              <Label>Create new institution</Label>
+
+              <Input
+                placeholder="Institution name"
+                value={institution.name}
+                onChange={(e) =>
+                  setInstitution({ ...institution, name: e.target.value })
+                }
+              />
+
+              <Input
+                placeholder="Email"
+                value={institution.email_address}
+                onChange={(e) =>
+                  setInstitution({
+                    ...institution,
+                    email_address: e.target.value,
+                  })
+                }
+              />
+
+              <Input
+                placeholder="Phone number"
+                value={institution.phone_number}
+                onChange={(e) =>
+                  setInstitution({
+                    ...institution,
+                    phone_number: e.target.value,
+                  })
+                }
+              />
+
+              <AddressFields
+                address={institution.address}
+                onChange={(address) =>
+                  setInstitution({ ...institution, address })
+                }
+              />
             </div>
           )}
         </>
       )}
+    </div>
+  )
+}
+
+/* ---------------- Address subcomponent ---------------- */
+
+type AddressProps = {
+  address: typeof emptyAddress
+  onChange: (address: typeof emptyAddress) => void
+}
+
+function AddressFields({ address, onChange }: AddressProps) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <Input
+        placeholder="City"
+        value={address.city}
+        onChange={(e) =>
+          onChange({ ...address, city: e.target.value })
+        }
+      />
+      <Input
+        placeholder="Postal code"
+        value={address.postal_code}
+        onChange={(e) =>
+          onChange({ ...address, postal_code: e.target.value })
+        }
+      />
+      <Input
+        placeholder="Street"
+        value={address.street}
+        onChange={(e) =>
+          onChange({ ...address, street: e.target.value })
+        }
+      />
+      <Input
+        placeholder="Building number"
+        value={address.building_number}
+        onChange={(e) =>
+          onChange({ ...address, building_number: e.target.value })
+        }
+      />
+      <Input
+        placeholder="Apartment number"
+        value={address.apartment_number}
+        onChange={(e) =>
+          onChange({ ...address, apartment_number: e.target.value })
+        }
+      />
     </div>
   )
 }

@@ -90,7 +90,7 @@ class IntakeCreateSerializer(serializers.ModelSerializer):
 
         if source_data and source_type:
 
-            if source_data.get("id") is None:
+            if set(source_data.keys()) == {"id"} and source_data.get("id") is None:
                 validated_data["source_id"] = None
                 validated_data["source_type"] = None
 

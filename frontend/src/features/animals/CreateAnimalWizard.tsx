@@ -187,7 +187,7 @@ export function CreateAnimalWizard({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Add New Animal - Step {currentStep} of 3</DialogTitle>
           <DialogDescription>
@@ -197,7 +197,7 @@ export function CreateAnimalWizard({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className="py-4 overflow-y-auto flex-1">
           {currentStep === 1 && (
             <div className="grid gap-4">
               <div className="grid gap-2">
