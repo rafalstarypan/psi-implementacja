@@ -89,7 +89,12 @@ class IntakeCreateSerializer(serializers.ModelSerializer):
         source_type = validated_data.get("source_type")
 
         if source_data and source_type:
-            if set(source_data.keys()) == {"id"}:
+
+            if source_data.get("id") is None:
+                validated_data["source_id"] = None
+                validated_data["source_type"] = None
+
+            elif set(source_data.keys()) == {"id"}:
                 if SourceService.exists(source_type, source_data["id"], context=self.context):
                     validated_data["source_id"] = source_data["id"]
                 else:

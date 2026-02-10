@@ -182,7 +182,7 @@ class Animal(models.Model):
     def age_display(self):
         """Return age as a human-readable string."""
         if not self.birth_date:
-            return 'Nieznany'
+            return 'Unknown'
         from datetime import date
         today = date.today()
         years = today.year - self.birth_date.year
@@ -191,8 +191,8 @@ class Animal(models.Model):
             years -= 1
             months += 12
         if years > 0:
-            return f'{years} lat' if years != 1 else '1 rok'
-        return f'{months} mies.' if months > 0 else 'poniżej miesiąca'
+            return f'{years} years' if years != 1 else '1 year'
+        return f'{months} months.' if months > 0 else 'less than one month'
 
 
 class Medication(models.Model):

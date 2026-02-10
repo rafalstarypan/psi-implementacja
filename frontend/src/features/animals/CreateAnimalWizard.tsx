@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
 import { AsyncParentSelect } from "./animalNameLookup"
 import {Tag, tagsFromApi } from "./types"
+import { IntakeSourceSelector } from "./IntakeSourceHandler";
 
 export interface NewAnimalFormData {
   name: string;
@@ -83,6 +84,7 @@ export function CreateAnimalWizard({
   const handleNext = () => {
     if (currentStep === 1 && !validateStep1()) return;
     if (currentStep === 2 && !validateStep2()) return;
+    if (currentStep === 3 && !validateStep3()) return
     setCurrentStep((prev) => Math.min(prev + 1, 3));
   };
 
@@ -105,7 +107,7 @@ export function CreateAnimalWizard({
       behavioral_tags: [],
       parents: [],
       intakes:     {
-        intake_type: "",       
+        intake_type: "STRAY",       
         animal_condition: "",  
         location: "",           
         notes: "",
@@ -135,8 +137,28 @@ export function CreateAnimalWizard({
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateStep3 = (): boolean => {
+  const newErrors: Record<string, string> = {}
+
+  if (!formData.intakes?.intake_type?.trim()) {
+    newErrors.intake_type = "Intake type is required"
+  }
+
+  if (!formData.intakes?.animal_condition?.trim()) {
+    newErrors.animal_condition = "Animal condition is required"
+  }
+
+  if (!formData.intakes?.location?.trim()) {
+    newErrors.location = "Location is required"
+  }
+
+  setErrors(newErrors)
+  return Object.keys(newErrors).length === 0
+}
+
+
   const handleSave = () => {
-    if (!validateStep1() || !validateStep2()) return;
+    if (!validateStep1() || !validateStep2() || !validateStep3()) return;
 
     // Prepare final JSON
     const payload: NewAnimalFormData = {
@@ -341,8 +363,13 @@ export function CreateAnimalWizard({
           <SelectItem value="STRAY">Stray</SelectItem>
           <SelectItem value="SURRENDER">Surrender</SelectItem>
           <SelectItem value="TRANSFER">Transfer</SelectItem>
+          <SelectItem value="CONFISCATION">Confiscation</SelectItem>
+          <SelectItem value="BORN_IN_SHELTER">Born in shelter</SelectItem>
         </SelectContent>
       </Select>
+      {errors.intake_type && ( <p className="text-red-500">{errors.intake_type}</p>
+)}
+
     </div>
 
     <div className="grid gap-2">
@@ -356,6 +383,9 @@ export function CreateAnimalWizard({
           })
         }
       />
+      {errors.animal_condition && (<p className="text-red-500">{errors.animal_condition}</p>
+)}
+
     </div>
 
     <div className="grid gap-2">
@@ -369,6 +399,9 @@ export function CreateAnimalWizard({
           })
         }
       />
+      {errors.location && (<p className="text-red-500">{errors.location}</p>
+)}
+
     </div>
 
     <div className="grid gap-2">
@@ -385,41 +418,19 @@ export function CreateAnimalWizard({
       />
     </div>
 
-    <div className="grid gap-2">
-      <Label>Source Type *</Label>
-      <Select
-        value={formData.intakes?.source_type || ""}
-        onValueChange={(v) =>
-          setFormData({
-            ...formData,
-            intakes: { ...(formData.intakes || {}), source_type: v },
-          })
-        }
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Select source type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="institution">Institution</SelectItem>
-          <SelectItem value="person">Person</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
+=<IntakeSourceSelector
+  onChange={(payload) =>
+    setFormData({
+      ...formData,
+      intakes: {
+        ...(formData.intakes || {}),
+        source_type: payload?.source_type,
+        source: payload?.source,
+      },
+    })
+  }
+/>
 
-
-        <div className="grid gap-2">
-      <Label>SourceId</Label>
-      <Textarea
-        rows={3}
-        value={formData.intakes?.source_id || ""}
-        onChange={(e) =>
-          setFormData({
-            ...formData,
-            intakes: { ...(formData.intakes || {}), source_id: e.target.value },
-          })
-        }
-      />
-    </div>
 
 
   </div>
