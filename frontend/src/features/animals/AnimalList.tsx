@@ -175,7 +175,7 @@ export function AnimalList() {
                       <TableRow
                         key={animal.id}
                         className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/panel/animals/${animal.id}`)}
+                        onClick={() => navigate(`/panel/animals-medical/${animal.id}`)}
                       >
                         <TableCell className="font-mono text-sm">{animal.animal_id}</TableCell>
                         <TableCell className="text-blue-600">{animal.species_display}</TableCell>

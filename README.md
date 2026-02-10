@@ -103,6 +103,8 @@ chmod +x infrastructure/scripts/*.sh
    python manage.py seed_users
    python manage.py seed_animals
    python manage.py seed_supplies
+   python manage.py seed_behavioral_tags
+   python manage.py seed_tasks
    python manage.py runserver
    ```
 

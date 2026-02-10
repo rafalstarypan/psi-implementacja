@@ -8,7 +8,8 @@ export function HomePage() {
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuth()
 
-  const canAccessPanel = user?.role === 'employee'
+  const canAccessStaffPanel = user?.role === 'employee'
+  const canAccessVolunteerPanel = user?.role === 'employee' || user?.role === 'volunteer'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -25,9 +26,14 @@ export function HomePage() {
                 <span className="text-sm text-gray-600">
                   Zalogowano jako: {user?.full_name}
                 </span>
-                {canAccessPanel && (
+                {canAccessStaffPanel && (
                   <Button onClick={() => navigate('/panel/supplies')}>
                     Panel pracownika
+                  </Button>
+                )}
+                {canAccessVolunteerPanel && (
+                  <Button onClick={() => navigate('/panel/volunteers/schedules')}>
+                    Panel wolontariusza
                   </Button>
                 )}
                 <Button variant="outline" onClick={logout}>

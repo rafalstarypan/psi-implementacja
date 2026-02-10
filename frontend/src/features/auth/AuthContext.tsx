@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         username: email,
         password: password,
         client_id: import.meta.env.VITE_OAUTH_CLIENT_ID || 'shelter-frontend',
+        client_secret: import.meta.env.VITE_CLIENT_SECRET
       }),
     })
 

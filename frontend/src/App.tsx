@@ -7,6 +7,12 @@ import { SupplyList } from '@/features/supplies/SupplyList'
 import { SupplyItemDetail } from '@/features/supplies/SupplyItemDetail'
 import { AnimalList } from '@/features/animals/AnimalList'
 import { AnimalMedicalRecord } from '@/features/animals/AnimalMedicalRecord'
+import { AnimalDetailList } from './features/animals/AnimalDataList'
+import { AnimalDataDetail } from './features/animals/AnimalDataDetail'
+import { AnimalIntakesPage } from './features/animals/AnimalIntakesDetail'
+import { AnimalDataEdit } from './features/animals/AnimalDataEdit'
+import { VolunteerSchedulesDetail } from './features/volunteers/ScheduleDetail'
+import { Toaster } from "sonner"
 
 function StaffRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -33,8 +39,36 @@ function StaffRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function VolunteerRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, user } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  // Employees and volunteers can access
+  const hasAccess = user?.role === 'employee' || user?.role === 'volunteer'
+
+  if (!hasAccess) {
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
+
+
+
 function App() {
   return (
+    <>
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<HomePage />} />
@@ -45,23 +79,47 @@ function App() {
         path="/panel"
         element={
           <StaffRoute>
-            <Layout />
+            <Layout panel="staff"/>
           </StaffRoute>
         }
       >
         <Route index element={<Navigate to="/panel/supplies" replace />} />
         <Route path="supplies" element={<SupplyList />} />
         <Route path="supplies/:id" element={<SupplyItemDetail />} />
-        <Route path="animals" element={<AnimalList />} />
-        <Route path="animals/:id" element={<AnimalMedicalRecord />} />
+        <Route path="animals-medical" element={<AnimalList />} />
+        <Route path="animals-medical/:id" element={<AnimalMedicalRecord />} />
+        <Route path="animals-data" element={<AnimalDetailList />} />
+        <Route path="animals-data/:id" element={<AnimalDataDetail />} />
+        <Route path="animals-data/:id/intakes" element={<AnimalIntakesPage />} />
+        <Route path="animals-data/:id/edit" element={<AnimalDataEdit />} />
       </Route>
+
+
+      <Route
+  path="/panel/volunteers"
+  element={
+    <VolunteerRoute>
+      <Layout panel="volunteers"/> {/* Optional: same Layout as staff, or create separate */}
+    </VolunteerRoute>
+  }
+>
+  <Route index element={<Navigate to="/panel/volunteers/schedules" replace />} />
+  <Route path="schedules" element={<VolunteerSchedulesDetail/>} />
+</Route>
+
+
+      
 
       {/* Redirect old routes to new panel routes */}
       <Route path="/supplies" element={<Navigate to="/panel/supplies" replace />} />
       <Route path="/supplies/:id" element={<Navigate to="/panel/supplies" replace />} />
       <Route path="/animals" element={<Navigate to="/panel/animals" replace />} />
       <Route path="/animals/:id" element={<Navigate to="/panel/animals" replace />} />
+      <Route path="/animals-data/:id" element={<Navigate to="/panel/animals" replace />} />
+
     </Routes>
+          <Toaster richColors position="top-right" />
+    </>
   )
 }
 

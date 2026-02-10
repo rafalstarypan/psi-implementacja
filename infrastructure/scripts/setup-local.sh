@@ -102,6 +102,9 @@ echo "Seeding demo data..."
 python manage.py seed_users
 python manage.py seed_animals || echo "seed_animals command not found or failed"
 python manage.py seed_supplies || echo "seed_supplies command not found or failed"
+python manage.py seed_behavioral_tags || echo seed_behavioral_tags command not found or failed
+python manage.py seed_tasks || echo seed_tasks command not found or failed
+
 
 echo ""
 echo "Backend setup complete!"

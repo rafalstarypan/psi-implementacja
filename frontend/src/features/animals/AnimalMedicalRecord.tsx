@@ -135,7 +135,7 @@ export function AnimalMedicalRecord() {
   const { data: veterinarians = [] } = useQuery({
     queryKey: ['veterinarians'],
     queryFn: async () => {
-      const response = await apiClient.get('/animals/veterinarians/')
+      const response = await apiClient.get('/veterinarians/')
       return response.data as Veterinarian[]
     },
   })

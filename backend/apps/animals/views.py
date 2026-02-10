@@ -8,10 +8,17 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.accounts.permissions import IsEmployee
 from apps.accounts.models import User, Role
-from .models import Animal, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Photo, Vaccination, MedicalProcedure
 from .serializers import (
+    AnimalCreateSerializer,
     AnimalListSerializer,
     AnimalDetailSerializer,
+    AnimalUpdateSerializer,
+    BehavioralTagListSerializer,
+    IntakeCreateSerializer,
+    IntakeDetailSerializer,
+    IntakeListSerializer,
+    IntakeListSerializer,
     MedicationSerializer,
     MedicationCreateSerializer,
     VaccinationSerializer,
@@ -19,10 +26,14 @@ from .serializers import (
     MedicalProcedureSerializer,
     MedicalProcedureCreateSerializer,
     VeterinarianSerializer,
+    BehavioralTagDetailSerializer,
+    PhotoListSerializer,
+    PhotoDetailSerializer,
+    PhotoCreateSerializer
 )
 
 
-class AnimalViewSet(viewsets.ReadOnlyModelViewSet):
+class AnimalViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing animals.
 
@@ -40,8 +51,12 @@ class AnimalViewSet(viewsets.ReadOnlyModelViewSet):
         return Animal.objects.all()
 
     def get_serializer_class(self):
+        if self.action == 'create':
+            return AnimalCreateSerializer
         if self.action == 'retrieve':
             return AnimalDetailSerializer
+        if self.action in ["update", "partial_update"]:
+            return AnimalUpdateSerializer
         return AnimalListSerializer
 
     @action(detail=True, methods=['get', 'post'])
@@ -137,3 +152,62 @@ class VeterinarianListView(APIView):
         veterinarians = User.objects.filter(role=Role.EMPLOYEE, is_active=True)
         serializer = VeterinarianSerializer(veterinarians, many=True)
         return Response(serializer.data)
+
+
+class IntakeViewSet(viewsets.ModelViewSet):
+
+    queryset = Intake.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return IntakeDetailSerializer
+        if self.action in ['create', 'update', 'partial_update']:
+            return IntakeCreateSerializer
+        return IntakeListSerializer
+    
+    def get_queryset(self):
+        animal_pk = self.kwargs.get('animal_pk')
+        return self.queryset.filter(animal_id=animal_pk)
+    
+    def perform_create(self, serializer):
+        animal_pk = self.kwargs.get('animal_pk')
+        serializer.save(animal_id=animal_pk)    
+
+
+class BehavioralTagViewSet(viewsets.ReadOnlyModelViewSet):
+
+    queryset = BehavioralTag.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return BehavioralTagDetailSerializer
+        return BehavioralTagListSerializer
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        animal_pk = self.kwargs.get('animal_pk')
+        if animal_pk:
+            qs = qs.filter(animals__id=animal_pk)
+        return qs
+
+    
+
+class PhotoViewSet(viewsets.ModelViewSet):
+
+    queryset = Photo.objects.all()
+    lookup_field = 'photo_id'
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PhotoDetailSerializer
+        if self.action in ['create', 'update', 'partial_update']:
+            return PhotoCreateSerializer
+        return PhotoListSerializer
+
+    def get_queryset(self):
+        animal_pk = self.kwargs.get('animal_pk')
+        return self.queryset.filter(animal_id=animal_pk)
+    
+    def perform_create(self, serializer):
+        animal_pk = self.kwargs.get('animal_pk')
+        serializer.save(animal_id=animal_pk)  

@@ -6,8 +6,10 @@ from decimal import Decimal
 from datetime import date, timedelta
 from apps.animals.models import (
     Animal, Medication, Vaccination, MedicalProcedure,
-    AnimalSpecies, AnimalSex, AnimalStatus
+    AnimalSpecies, AnimalSex, AnimalStatus, BehavioralTag, Intake,
+    IntakeType, AnimalSpecies
 )
+from django.core.exceptions import ValidationError
 
 
 @pytest.mark.django_db
@@ -26,7 +28,7 @@ class TestAnimal:
         )
         assert animal.name == 'Max'
         assert animal.species == AnimalSpecies.DOG
-        assert str(animal) == 'Max (Pies)'
+        assert str(animal) == 'Max (Dog)'
 
     def test_animal_id_unique(self, dog_max):
         """Test that animal_id must be unique."""
@@ -46,7 +48,7 @@ class TestAnimal:
             name='Rex',
             birth_date=date.today() - timedelta(days=730),  # ~2 years
         )
-        assert 'lat' in animal.age_display or 'rok' in animal.age_display
+        assert 'years' in animal.age_display or 'year' in animal.age_display
 
     def test_age_display_months(self):
         """Test age_display for animals less than 1 year old."""
@@ -56,7 +58,7 @@ class TestAnimal:
             name='Puppy',
             birth_date=date.today() - timedelta(days=90),  # ~3 months
         )
-        assert 'mies' in animal.age_display
+        assert 'months' in animal.age_display
 
     def test_age_display_unknown(self):
         """Test age_display when birth_date is not set."""
@@ -65,7 +67,7 @@ class TestAnimal:
             species=AnimalSpecies.DOG,
             name='Unknown',
         )
-        assert animal.age_display == 'Nieznany'
+        assert animal.age_display == 'Unknown'
 
     def test_default_status(self):
         """Test that default status is NEW_INTAKE."""
@@ -157,3 +159,109 @@ class TestMedicalProcedure:
         assert procedure.description == 'Kastracja'
         assert procedure.cost == Decimal('350.00')
         assert 'Kastracja' in str(procedure)
+
+
+@pytest.mark.django_db
+class TestBehavioralTag:
+    """Tests for BehavioralTag model."""
+
+    def test_create_tag(self):
+        """Test creating a behavioral tag."""
+        tag = BehavioralTag.objects.create(
+            behavioral_tag_name='Agresywny',
+            description='Wykazuje agresję przy jedzeniu'
+        )
+        assert tag.behavioral_tag_name == 'Agresywny'
+        assert str(tag) == 'Agresywny'
+
+    def test_tag_name_unique(self):
+        """Test that behavioral_tag_name must be unique."""
+        BehavioralTag.objects.create(
+            behavioral_tag_name='Lękliwy',
+            description='Boi się hałasu'
+        )
+        from django.db import IntegrityError
+        with pytest.raises(IntegrityError):
+            BehavioralTag.objects.create(
+                behavioral_tag_name='Lękliwy',
+                description='Inny opis'
+            )
+
+
+@pytest.mark.django_db
+class TestAnimalExtended:
+    """Additional tests for Animal model features not covered in original tests."""
+
+    def test_age_display_less_than_month(self):
+        """Test age_display for animals born recently."""
+        animal = Animal.objects.create(
+            name='Baby',
+            species=AnimalSpecies.CAT,
+            birth_date=date.today() - timedelta(days=10)
+        )
+        assert animal.age_display == '1 months.'
+
+    def test_parent_validation_limit(self):
+        """Test that an animal cannot have more than 2 parents."""
+        child = Animal.objects.create(name='Child', species=AnimalSpecies.DOG)
+        parent1 = Animal.objects.create(name='Parent1', species=AnimalSpecies.DOG)
+        parent2 = Animal.objects.create(name='Parent2', species=AnimalSpecies.DOG)
+        parent3 = Animal.objects.create(name='Parent3', species=AnimalSpecies.DOG)
+
+
+        child.parents.add(parent1, parent2, parent3)
+
+
+        with pytest.raises(ValidationError) as excinfo:
+            child.clean()
+        
+        assert "An animal can have at most 2 parents" in str(excinfo.value)
+
+    def test_add_behavioral_tags(self):
+        """Test associating behavioral tags with an animal."""
+        animal = Animal.objects.create(name='Burek', species=AnimalSpecies.DOG)
+        tag = BehavioralTag.objects.create(
+            behavioral_tag_name='Przyjazny', 
+            description='Lubi ludzi'
+        )
+        
+        animal.behavioral_tags.add(tag)
+        assert animal.behavioral_tags.count() == 1
+        assert animal.behavioral_tags.first() == tag
+
+
+@pytest.mark.django_db
+class TestIntake:
+    """Tests for Intake model."""
+
+    def test_create_intake(self, dog_max):
+        """Test creating an intake record."""
+        intake = Intake.objects.create(
+            animal=dog_max,
+            intake_date=date.today(),
+            animal_condition='Dobry',
+            location='Ul. Główna 5',
+            notes='Znaleziony przy sklepie',
+            intake_type=IntakeType.STRAY,
+            source_type='person'
+        )
+        
+        assert intake.animal == dog_max
+        assert intake.intake_type == IntakeType.STRAY
+
+        expected_str = f'{dog_max.name} - {date.today()} - {IntakeType.STRAY.label}'
+        assert str(intake) == expected_str
+
+    def test_intake_defaults(self, dog_max):
+        """Test default values for intake."""
+        intake = Intake.objects.create(
+            animal=dog_max,
+            animal_condition='Zły',
+            location='Las',
+            notes='Brak',
+            intake_type=IntakeType.SURRENDER
+        )
+        assert intake.intake_date == date.today()
+        assert intake.intake_id is not None
+
+

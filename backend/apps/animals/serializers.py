@@ -1,9 +1,111 @@
 """
 Serializers for animals app.
 """
+from datetime import date
+from time import timezone
 from rest_framework import serializers
-from .models import Animal, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Photo, Vaccination, MedicalProcedure
 from apps.accounts.serializers import UserMinimalSerializer
+import requests
+from .services.intake_source_service import SourceService
+
+class PhotoListSerializer(serializers.ModelSerializer):
+    """Serializer for Animal Photo list view."""
+    class Meta:
+        model = Photo
+        fields = [
+            'filename', 
+            'is_identification_photo', 'url'
+        ]
+        read_only_fields = ['url']   
+
+class PhotoDetailSerializer(serializers.ModelSerializer):
+    """Serializer for Animal Photo detail view."""
+    class Meta:
+        model = Photo
+        fields = [
+            'photo_id',
+            'filename', 
+            'url',
+            'is_identification_photo',
+            'upload_date',
+        ]
+        
+
+class PhotoCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Photo
+        fields = [
+            'is_identification_photo',
+            'filename',
+            'url',
+            'upload_date'
+        ]
+        read_only_fields = ['url', 'upload_date']
+
+    def create(self, validated_data):
+        validated_data['url'] = f"/media/animals/{validated_data['filename']}"
+        photo = Photo.objects.create(**validated_data)
+        return photo
+
+
+
+class IntakeDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Intake
+        fields = [
+            'intake_id',
+            'intake_date', 
+            'intake_type', 
+            'animal_condition', 
+            'location', 
+            'notes'
+        ]
+
+
+class IntakeCreateSerializer(serializers.ModelSerializer):
+
+    source = serializers.DictField(write_only=True, required=False)
+
+    class Meta:
+        model = Intake
+        fields = [
+            'intake_id',
+            'intake_type', 
+            'intake_date',
+            'animal_condition', 
+            'location', 
+            'notes',
+            'source_type',
+            'source'
+        ]
+        read_only_fields = ['intake_id', 'intake_date']
+
+    def create(self, validated_data):
+
+        source_data = validated_data.pop("source", None)
+        source_type = validated_data.get("source_type")
+
+        if source_data and source_type:
+
+            if set(source_data.keys()) == {"id"} and source_data.get("id") is None:
+                validated_data["source_id"] = None
+                validated_data["source_type"] = None
+
+            elif set(source_data.keys()) == {"id"}:
+                if SourceService.exists(source_type, source_data["id"], context=self.context):
+                    validated_data["source_id"] = source_data["id"]
+                else:
+                    validated_data["source_id"] = None
+                    validated_data["source_type"] = None
+            else:
+                validated_data["source_id"] = SourceService.create(
+                    source_type, source_data["data"], context=self.context
+                )
+        return Intake.objects.create(**validated_data)
+
 
 
 class AnimalListSerializer(serializers.ModelSerializer):
@@ -21,6 +123,20 @@ class AnimalListSerializer(serializers.ModelSerializer):
             'status', 'status_display', 'intake_date'
         ]
 
+class IntakeListSerializer(serializers.ModelSerializer):
+
+
+    class Meta:
+        model = Intake
+        fields = [
+            'intake_date', 
+            'intake_type', 
+            'animal_condition', 
+            'location',
+            'source_type',
+            'source_id'
+        ]
+
 
 class AnimalDetailSerializer(serializers.ModelSerializer):
     """Serializer for Animal detail view."""
@@ -32,6 +148,24 @@ class AnimalDetailSerializer(serializers.ModelSerializer):
     vaccinations = serializers.SerializerMethodField()
     medical_procedures = serializers.SerializerMethodField()
 
+    behavioral_tags = serializers.SlugRelatedField(
+        many=True,
+        slug_field="behavioral_tag_name",
+        queryset=BehavioralTag.objects.all(),
+        required=False,
+    )
+
+    parents = serializers.SlugRelatedField(
+        many=True,
+        slug_field="animal_id",      
+        queryset=Animal.objects.all(),      
+        required=False,         
+    )
+
+    photos = PhotoListSerializer(many=True, read_only=True)
+
+    intakes = IntakeListSerializer(many=True, read_only=True)
+
     class Meta:
         model = Animal
         fields = [
@@ -39,12 +173,11 @@ class AnimalDetailSerializer(serializers.ModelSerializer):
             'breed', 'birth_date', 'age_display', 'sex', 'sex_display',
             'coat_color', 'weight', 'identifying_marks', 'transponder_number',
             'status', 'status_display', 'notes', 'intake_date', 'microchipping_date',
-            'medications', 'vaccinations', 'medical_procedures'
+            'medications', 'vaccinations', 'medical_procedures', 'behavioral_tags', 'parents', 'photos', 'intakes', 'last_measured'
         ]
 
     def get_medications(self, obj):
         """Get medications with is_active status."""
-        from datetime import date
         medications = obj.medications.select_related('performed_by').all()
         result = []
         for med in medications:
@@ -94,6 +227,67 @@ class AnimalDetailSerializer(serializers.ModelSerializer):
             }
             for proc in procedures
         ]
+
+
+class AnimalCreateSerializer(serializers.ModelSerializer):
+
+    behavioral_tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=BehavioralTag.objects.all(),
+        required=False,
+    )
+
+    parents = serializers.SlugRelatedField(
+        many=True,
+        slug_field="animal_id",      
+        queryset=Animal.objects.all(),
+        required=False,
+        error_messages={
+        "does_not_exist": "Animal with animal_id '{value}' does not exist."
+        }
+    )
+
+
+    intakes = IntakeCreateSerializer(required=True, write_only=True)
+
+    class Meta:
+        model = Animal
+        fields = [
+            'animal_id', 'name', 'species',
+            'breed', 'birth_date', 'sex',
+            'coat_color', 'weight', 'identifying_marks', 'transponder_number',
+            'status', 'notes', 'microchipping_date', 'last_measured',
+            'behavioral_tags','parents', 'intakes'
+        ]
+        read_only_fields = ['animal_id', 'last_measured']
+
+    def create(self, validated_data):
+    
+        parents = validated_data.pop('parents', [])
+        tags = validated_data.pop('behavioral_tags', [])
+        intake_data = validated_data.pop('intakes', None)
+
+        validated_data['last_measured'] = date.today()
+        animal = Animal.objects.create(
+            **validated_data
+        )
+        if intake_data:
+            intake_serializer = IntakeCreateSerializer(
+                data=intake_data,
+                context=self.context
+            )
+            intake_serializer.is_valid(raise_exception=True)
+            intake_serializer.save(animal=animal)
+        if parents:
+            animal.parents.set(parents)
+        if tags:
+            animal.behavioral_tags.set(tags)
+        return animal
+    
+    def validate_parents(self, value):
+        if len(value) > 2:
+            raise serializers.ValidationError("An animal can have at most 2 parents.")
+        return value
 
 
 class MedicationSerializer(serializers.ModelSerializer):
@@ -206,3 +400,98 @@ class VeterinarianSerializer(serializers.ModelSerializer):
         from apps.accounts.models import User
         model = User
         fields = ['id', 'full_name', 'email']
+
+
+
+class BehavioralTagListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BehavioralTag
+        fields = [
+            'behavioral_tag_name', 
+        ]
+
+class BehavioralTagDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BehavioralTag
+        fields = [
+            'behavioral_tag_name', 
+            'description',
+        ]
+
+
+from .models import Animal
+
+class AnimalUpdateSerializer(serializers.ModelSerializer):
+    # Input: accept list of animal_id strings
+    parents = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_null=True,
+        write_only=True  # only used for input
+    )
+
+    # Output: show list of animal_id strings
+    parents_display = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Animal
+        fields = [
+            "name",
+            "species",
+            "breed",
+            "sex",
+            "birth_date",
+            "coat_color",
+            "weight",
+            "last_measured",
+            "identifying_marks",
+            "transponder_number",
+            "microchipping_date",
+            "behavioral_tags",
+            "parents",
+            "parents_display",
+            "status",
+        ]
+        extra_kwargs = {
+            field: {"required": False, "allow_null": True}
+            for field in fields
+        }
+
+    def get_parents_display(self, obj):
+        # Return list of animal_id strings for frontend
+        return [p.animal_id for p in obj.parents.all()]
+
+    def validate_parents(self, value):
+        """Convert list of animal_id strings to actual Animal objects"""
+        if value is None:
+            return []
+
+        animals = list(Animal.objects.filter(animal_id__in=value))
+
+        if len(animals) != len(value):
+            found_ids = {a.animal_id for a in animals}
+            missing = [aid for aid in value if aid not in found_ids]
+            raise serializers.ValidationError(f"Parents not found: {missing}")
+
+        return animals
+
+    def update(self, instance, validated_data):
+        # Pop ManyToMany fields first
+        parents = validated_data.pop("parents", None)
+        behavioral_tags = validated_data.pop("behavioral_tags", None)
+
+        # Update normal fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update M2M fields properly
+        if parents is not None:
+            instance.parents.set(parents)
+        if behavioral_tags is not None:
+            instance.behavioral_tags.set(behavioral_tags)
+
+        return instance
+

@@ -2,7 +2,7 @@
 Admin configuration for animals app.
 """
 from django.contrib import admin
-from .models import Animal, Medication, Vaccination, MedicalProcedure
+from .models import Animal, BehavioralTag, Intake, Medication, Photo, Vaccination, MedicalProcedure
 
 
 class MedicationInline(admin.TabularInline):
@@ -25,24 +25,24 @@ class MedicalProcedureInline(admin.TabularInline):
 
 @admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
-    list_display = ['animal_id', 'name', 'species', 'breed', 'sex', 'status', 'intake_date']
+    list_display = ['name', 'species', 'breed', 'sex', 'status']
     list_filter = ['species', 'sex', 'status']
-    search_fields = ['name', 'animal_id', 'breed', 'transponder_number']
+    search_fields = ['name', 'breed', 'transponder_number']
     readonly_fields = ['created_at', 'updated_at']
     inlines = [MedicationInline, VaccinationInline, MedicalProcedureInline]
 
     fieldsets = (
-        ('Podstawowe informacje', {
-            'fields': ('animal_id', 'name', 'species', 'breed', 'birth_date', 'sex')
+        ('Basic information', {
+            'fields': ( 'name', 'species', 'breed', 'birth_date', 'sex')
         }),
-        ('Cechy fizyczne', {
-            'fields': ('coat_color', 'weight', 'identifying_marks')
+        ('Physical characteristics', {
+            'fields': ('coat_color', 'weight', 'identifying_marks', 'last_measured')
         }),
-        ('Status i identyfikacja', {
+        ('Status and identification', {
             'fields': ('status', 'transponder_number', 'microchipping_date')
         }),
-        ('Dodatkowe informacje', {
-            'fields': ('notes', 'intake_date', 'created_at', 'updated_at')
+        ('Additional information', {
+            'fields': ('notes', 'created_at', 'updated_at')
         }),
     )
 
@@ -73,3 +73,25 @@ class MedicalProcedureAdmin(admin.ModelAdmin):
     def description_short(self, obj):
         return obj.description[:50] + '...' if len(obj.description) > 50 else obj.description
     description_short.short_description = 'Opis'
+
+@admin.register(Intake)
+class IntakeAdmin(admin.ModelAdmin):
+    list_display = ['animal', 'intake_type', 'intake_date']
+    list_filter = ['intake_type', 'intake_date']
+    search_fields = ['animal__name', 'notes']
+    readonly_fields = ['created_at']
+
+@admin.register(BehavioralTag)
+class BehavioralTagAdmin(admin.ModelAdmin):
+    list_display = ['behavioral_tag_name']
+    list_filter = ['behavioral_tag_name']
+    search_fields = ['behavioral_tag_name']
+    readonly_fields = ['created_at']
+
+
+@admin.register(Photo)
+class PhotoAdmin(admin.ModelAdmin):
+    list_display = ['filename', 'is_identification_photo', 'url', 'upload_date']
+    list_filter = ['upload_date', 'is_identification_photo']
+    search_fields = ['filename', 'url']
+    readonly_fields = ['upload_date', 'created_at']

@@ -2,14 +2,18 @@ import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { PawPrint, Package, Stethoscope, LogOut, User, Home } from 'lucide-react'
+import { PawPrint, Package, Stethoscope, LogOut, User, Home, DogIcon } from 'lucide-react'
 
-export function Layout() {
+interface LayoutProps {
+  panel?: 'staff' | 'volunteers'
+}
+
+export function Layout({ panel }: LayoutProps)  {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
-  const navigation = [
+  let navigation = [
     {
       name: 'Zaopatrzenie',
       href: '/panel/supplies',
@@ -17,10 +21,24 @@ export function Layout() {
     },
     {
       name: 'Historia zdrowia',
-      href: '/panel/animals',
+      href: '/panel/animals-medical',
       icon: Stethoscope,
     },
+        {
+      name: 'Dane zwierząt',
+      href: '/panel/animals-data',
+      icon: DogIcon,
+    },
   ]
+
+  if (panel === 'volunteers') {
+    navigation = [
+      { name: 'Harmonogram', href: '/panel/volunteers/schedules', icon: Stethoscope },
+    ]
+  }
+
+
+
 
   const handleLogout = () => {
     logout()
@@ -90,7 +108,8 @@ export function Layout() {
         <nav className="md:hidden border-t px-4 py-2 flex space-x-2">
           {navigation.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname.startsWith(item.href)
+            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+
             return (
               <Link
                 key={item.name}
