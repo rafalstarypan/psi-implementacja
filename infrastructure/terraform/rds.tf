@@ -28,8 +28,12 @@ resource "aws_db_instance" "main" {
   multi_az                = false
   storage_encrypted       = true
   deletion_protection     = false
-  skip_final_snapshot     = true
-  backup_retention_period = 0
+  skip_final_snapshot     = false
+  final_snapshot_identifier = "${local.name_prefix}-pg-final-snapshot"
+  backup_retention_period   = var.db_backup_retention_period
+  backup_window             = "03:00-04:00"
+  maintenance_window        = "Mon:04:30-Mon:05:30"
+  copy_tags_to_snapshot     = true
 
   tags = {
     Name = "${local.name_prefix}-postgres"

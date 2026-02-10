@@ -27,6 +27,12 @@ variable "db_instance_class" {
   default     = "db.t3.micro"
 }
 
+variable "db_backup_retention_period" {
+  description = "Number of days to retain automated RDS backups (0 to disable)"
+  type        = number
+  default     = 7
+}
+
 variable "db_name" {
   description = "Database name"
   type        = string
