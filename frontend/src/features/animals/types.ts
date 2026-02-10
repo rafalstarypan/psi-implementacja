@@ -59,7 +59,7 @@ export type Tag = {
 
 export const tagsFromApi: Tag[] = [
   { id: 1, name: "calm" },
-  { id: 2, name: "aggresive" },
+  { id: 2, name: "aggressive" },
   { id: 3, name: "shy" },
   { id: 4, name: "playful" },
 ]

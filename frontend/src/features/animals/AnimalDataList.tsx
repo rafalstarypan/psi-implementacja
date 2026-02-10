@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { Search, Plus, Pencil } from 'lucide-react'
 import { CreateAnimalWizard, NewAnimalFormData } from './CreateAnimalWizard'
+import { toast } from "sonner"
 
 
 interface Animal {
@@ -258,6 +259,14 @@ export function AnimalDetailList() {
         setWizardOpen(false)
       } catch (err) {
         console.error('Error adding animal', err)
+
+            const message =
+            typeof data === "string"
+              ? data
+              : formatApiError(data) ||
+                "Failed to create animal. Please check your input."
+        toast.error("Error adding animal", { description: message })     
+
       }
     }}
   />
@@ -265,4 +274,18 @@ export function AnimalDetailList() {
 
     </div>
   )
+}
+
+
+function formatApiError(data: any): string {
+  if (!data || typeof data !== "object") return String(data)
+
+  return Object.entries(data)
+    .map(([field, messages]) => {
+      if (Array.isArray(messages)) {
+        return `${field}: ${messages.join(", ")}`
+      }
+      return `${field}: ${messages}`
+    })
+    .join("\n\n")
 }

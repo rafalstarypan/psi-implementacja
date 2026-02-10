@@ -226,14 +226,10 @@ class AnimalDetailSerializer(serializers.ModelSerializer):
 
 class AnimalCreateSerializer(serializers.ModelSerializer):
 
-    behavioral_tags = serializers.SlugRelatedField(
+    behavioral_tags = serializers.PrimaryKeyRelatedField(
         many=True,
-        slug_field="behavioral_tag_name",
         queryset=BehavioralTag.objects.all(),
         required=False,
-        error_messages={
-        "does_not_exist": "Behavioral tag '{value}' does not exist."
-    }
     )
 
     parents = serializers.SlugRelatedField(
@@ -246,7 +242,6 @@ class AnimalCreateSerializer(serializers.ModelSerializer):
         }
     )
 
-    photos = PhotoCreateSerializer(many=True, required=False)
 
     intakes = IntakeCreateSerializer(required=True, write_only=True)
 
@@ -257,7 +252,7 @@ class AnimalCreateSerializer(serializers.ModelSerializer):
             'breed', 'birth_date', 'sex',
             'coat_color', 'weight', 'identifying_marks', 'transponder_number',
             'status', 'notes', 'microchipping_date', 'last_measured',
-            'behavioral_tags','parents','photos', 'intakes'
+            'behavioral_tags','parents', 'intakes'
         ]
         read_only_fields = ['animal_id', 'last_measured']
 
@@ -265,7 +260,6 @@ class AnimalCreateSerializer(serializers.ModelSerializer):
     
         parents = validated_data.pop('parents', [])
         tags = validated_data.pop('behavioral_tags', [])
-        photos_data = validated_data.pop('photos', [])
         intake_data = validated_data.pop('intakes', None)
 
         validated_data['last_measured'] = date.today()
@@ -279,9 +273,6 @@ class AnimalCreateSerializer(serializers.ModelSerializer):
             )
             intake_serializer.is_valid(raise_exception=True)
             intake_serializer.save(animal=animal)
-        if photos_data:
-            for photo_data in photos_data:
-                Photo.objects.create(animal=animal, **photo_data)
         if parents:
             animal.parents.set(parents)
         if tags:

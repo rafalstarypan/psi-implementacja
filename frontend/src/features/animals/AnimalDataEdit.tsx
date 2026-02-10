@@ -5,7 +5,7 @@ import { format } from "date-fns"
 import { toast } from "sonner"
 
 import apiClient from "@/api/client"
-import { Animal, Tag, tagsFromApi, tagIdToName, tagNameToId } from "./types"
+import { Animal, Tag, tagsFromApi, tagNameToId } from "./types"
 import { mapAnimalFromApi } from "./animal.mapper"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"

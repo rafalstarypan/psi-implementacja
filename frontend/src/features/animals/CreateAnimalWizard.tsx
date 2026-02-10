@@ -20,26 +20,23 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
+import { AsyncParentSelect } from "./animalNameLookup"
+import {Tag, tagsFromApi } from "./types"
 
 export interface NewAnimalFormData {
-  name?: string;
-  species: string;
+  name: string;
+  species: "DOG" | "CAT" | "OTHER";
   breed: string;
-  birth_date?: string;
-  sex: "MALE" | "FEMALE";
+  birth_date?: string | null;
+  sex: "MALE" | "FEMALE" |"UNKNOWN";
   coat_color?: string;
   weight?: number;
   identifying_marks?: string;
   transponder_number?: string | null;
-  status: "NEW_INTAKE";
   notes?: string;
   microchipping_date?: string | null;
-  behavioral_tags?: string[];
+  behavioral_tags?: number[];
   parents?: string[];
-  photos: {
-    filename: string;
-    is_identification_photo: boolean;
-  }[];
   intakes?: {
     intake_type: string;
     animal_condition: string;
@@ -65,7 +62,7 @@ export function CreateAnimalWizard({
 }: AddAnimalWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<NewAnimalFormData>>({
-    species: "",
+    species: "DOG",
     breed: "",
     name: "",
     birth_date: "",
@@ -73,13 +70,11 @@ export function CreateAnimalWizard({
     coat_color: "",
     weight: undefined,
     identifying_marks: "",
-    transponder_number: null,
-    status: "NEW_INTAKE",
+    transponder_number: "",
     notes: "",
-    microchipping_date: null,
+    microchipping_date: "",
     behavioral_tags: [],
     parents: [],
-    photos: [],
     intakes: null,
   });
 
@@ -96,7 +91,7 @@ export function CreateAnimalWizard({
   const handleClose = () => {
     setCurrentStep(1);
     setFormData({
-      species: "",
+      species: "DOG",
       breed: "",
       name: "",
       birth_date: "",
@@ -105,12 +100,10 @@ export function CreateAnimalWizard({
       weight: undefined,
       identifying_marks: "",
       transponder_number: null,
-      status: "NEW_INTAKE",
       notes: "",
       microchipping_date: null,
       behavioral_tags: [],
       parents: [],
-      photos: [],
       intakes:     {
         intake_type: "",       
         animal_condition: "",  
@@ -128,6 +121,7 @@ export function CreateAnimalWizard({
     const newErrors: Record<string, string> = {};
     if (!formData.species?.trim()) newErrors.species = "Species is required";
     if (!formData.breed?.trim()) newErrors.breed = "Breed is required";
+    if (!formData.name?.trim()) newErrors.name = "Name is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -136,6 +130,7 @@ export function CreateAnimalWizard({
     const newErrors: Record<string, string> = {};
     if (!formData.coat_color?.trim()) newErrors.coat_color = "Coat color is required";
     if (!formData.weight) newErrors.weight = "Weight is required";
+    if (!formData.identifying_marks?.trim()) newErrors.identifying_marks = "Identifying marks are required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -147,19 +142,18 @@ export function CreateAnimalWizard({
     const payload: NewAnimalFormData = {
       species: formData.species!,
       breed: formData.breed!,
-      name: formData.name,
-      birth_date: formData.birth_date,
+      name: formData.name!,
+      birth_date: formData.birth_date || null,
       sex: formData.sex!,
       coat_color: formData.coat_color,
       weight: formData.weight ? Number(formData.weight) : undefined,
       identifying_marks: formData.identifying_marks,
-      transponder_number: formData.transponder_number,
+      transponder_number: formData.transponder_number || null,
       status: "NEW_INTAKE",
       notes: formData.notes,
-      microchipping_date: formData.microchipping_date,
+      microchipping_date: formData.microchipping_date || null,
       behavioral_tags: formData.behavioral_tags || [],
       parents: formData.parents || [],
-      photos: [],
       intakes: formData.intakes || null,
     };
 
@@ -167,16 +161,7 @@ export function CreateAnimalWizard({
     handleClose();
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const newPhotos: { filename: string; is_identification_photo: boolean }[] = [];
-      for (let i = 0; i < files.length; i++) {
-        newPhotos.push({ filename: files[i].name, is_identification_photo: i === 0 });
-      }
-      setFormData({ ...formData, photos: newPhotos });
-    }
-  };
+
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -185,7 +170,7 @@ export function CreateAnimalWizard({
           <DialogTitle>Add New Animal - Step {currentStep} of 3</DialogTitle>
           <DialogDescription>
             {currentStep === 1 && "Enter basic information"}
-            {currentStep === 2 && "Appearance and health info"}
+            {currentStep === 2 && "Additional info"}
             {currentStep === 3 && "Review and confirm"}
           </DialogDescription>
         </DialogHeader>
@@ -195,10 +180,19 @@ export function CreateAnimalWizard({
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label>Species *</Label>
-                <Input
+                <Select
                   value={formData.species}
-                  onChange={(e) => setFormData({ ...formData, species: e.target.value })}
-                />
+                  onValueChange={(v: "DOG" | "CAT" | "OTHER") => setFormData({ ...formData, species: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DOG">Dog</SelectItem>
+                    <SelectItem value="CAT">Cat</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
                 {errors.species && <p className="text-red-500">{errors.species}</p>}
               </div>
 
@@ -212,11 +206,12 @@ export function CreateAnimalWizard({
               </div>
 
               <div className="grid gap-2">
-                <Label>Name</Label>
+                <Label>Name *</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
+                 {errors.name && <p className="text-red-500">{errors.name}</p>}
               </div>
 
               <div className="grid gap-2">
@@ -232,7 +227,7 @@ export function CreateAnimalWizard({
                 <Label>Sex</Label>
                 <Select
                   value={formData.sex}
-                  onValueChange={(v: "MALE" | "FEMALE") => setFormData({ ...formData, sex: v })}
+                  onValueChange={(v: "MALE" | "FEMALE" | "UNKNOWN") => setFormData({ ...formData, sex: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -240,10 +235,34 @@ export function CreateAnimalWizard({
                   <SelectContent>
                     <SelectItem value="MALE">Male</SelectItem>
                     <SelectItem value="FEMALE">Female</SelectItem>
+                    <SelectItem value="UNKNOWN">Unknown</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="grid gap-2">
+                <Label>Transponder number </Label>
+                <Input
+                  value={formData.transponder_number ?? ""}
+                  onChange={(e) => setFormData({ ...formData, transponder_number: e.target.value })}
+                />
+              </div>
+
+
+              <div className="grid gap-2">
+                <Label>Microchipping date</Label>
+                <Input
+                  type="date"
+                  value={formData.microchipping_date ?? ""}
+                  onChange={(e) => setFormData({ ...formData, microchipping_date: e.target.value })}
+                />
+              </div>
+
             </div>
+
+
+
+
           )}
 
           {currentStep === 2 && (
@@ -269,25 +288,34 @@ export function CreateAnimalWizard({
               </div>
 
               <div className="grid gap-2">
-                <Label>Identifying Marks</Label>
+                <Label>Identifying Marks *</Label>
                 <Textarea
                   value={formData.identifying_marks}
                   onChange={(e) => setFormData({ ...formData, identifying_marks: e.target.value })}
                   rows={3}
                 />
+                {errors.identifying_marks && <p className="text-red-500">{errors.identifying_marks}</p>}
               </div>
 
-              <div className="grid gap-2">
-                <Label>Photos *</Label>
-                <input type="file" multiple onChange={handleFileUpload} />
-                {formData.photos?.length > 0 && (
-                  <div className="flex gap-2 mt-2">
-                    {formData.photos.map((p, i) => (
-                      <span key={i}>{p.filename}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <AsyncParentSelect
+                label="Parents"
+                value={formData.parents}   
+                onChange={(animalIds) => setFormData({ ...formData, parents: animalIds })}
+              />
+
+               <MultiTagSelect
+                 label="Behavioral tags"
+                 options={tagsFromApi}
+                 value={formData.behavioral_tags ?? []}
+                 onChange={(ids) =>
+                   setFormData({
+                     ...formData,
+                     behavioral_tags: ids,
+                   })
+                 }
+               />
+
+
             </div>
           )}
 
@@ -431,3 +459,59 @@ export function CreateAnimalWizard({
     </Dialog>
   );
 }
+
+
+type Props = {
+  label: string
+  options: Tag[]
+  value: number[]
+  onChange: (value: number[]) => void
+}
+
+
+type MultiTagSelectProps = {
+  label: string
+  options: Tag[]          
+  value: number[] 
+  onChange: (value: number[]) => void
+}
+
+
+export function MultiTagSelect({
+  label,
+  options,
+  value,
+  onChange,
+}: Props) {
+  const toggle = (id: number) => {
+    onChange(
+      value.includes(id)
+        ? value.filter((v) => v !== id)
+        : [...value, id]
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{label}</label>
+
+      <div className="border rounded-md p-3 space-y-2">
+        {options.map((tag) => (
+          <label
+            key={tag.id}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              checked={value.includes(tag.id)}
+              onChange={() => toggle(tag.id)}
+            />
+            <span className="text-sm">{tag.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
