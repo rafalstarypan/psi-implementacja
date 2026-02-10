@@ -76,6 +76,12 @@ run_seed_command "seed_animals"
 # Seed supplies
 run_seed_command "seed_supplies"
 
+# Seed behavioral tasks
+run_seed_command "seed_behavioral_tags"
+
+# Seed volunteers tasks
+run_seed_command "seed_taska"
+
 echo "=== Seeding complete! ==="
 echo ""
 echo "Demo accounts (password: haslo123):"

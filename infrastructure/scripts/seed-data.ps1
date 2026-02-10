@@ -81,5 +81,7 @@ Invoke-SeedCommand "seed_oauth_app"
 Invoke-SeedCommand "seed_users"
 Invoke-SeedCommand "seed_animals"
 Invoke-SeedCommand "seed_supplies"
+Invoke-SeedCommand "seed_behavioral_tags"
+Invoke-SeedCommand "seed_taska"
 
 Write-Host "=== Seeding complete! ==="

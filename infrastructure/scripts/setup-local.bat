@@ -74,11 +74,19 @@ if not exist "apps\core\migrations" (
     mkdir apps\core\migrations
     type nul > apps\core\migrations\__init__.py
 )
+if not exist "apps\parties\migrations" (
+    mkdir apps\parties\migrations
+    type nul > apps\parties\migrations\__init__.py
+)
+if not exist "apps\volunteers\migrations" (
+    mkdir apps\volunteers\migrations
+    type nul > apps\volunteers\migrations\__init__.py
+)
 
 REM Create migrations (accounts FIRST because admin depends on custom User model)
 echo Creating database migrations...
 python manage.py makemigrations accounts
-python manage.py makemigrations animals supplies core
+python manage.py makemigrations animals supplies core parties volunteers
 
 REM Run migrations
 echo Running database migrations...
@@ -93,6 +101,8 @@ echo Seeding demo data...
 python manage.py seed_users
 python manage.py seed_animals 2>nul || echo seed_animals command not found or failed
 python manage.py seed_supplies 2>nul || echo seed_supplies command not found or failed
+python manage.py seed_behavioral_tags 2>nul || echo seed_behavioral_tags command not found or failed
+python manage.py seed_tasks 2>nul || echo seed_tasks command not found or failed
 
 echo.
 echo Backend setup complete!
